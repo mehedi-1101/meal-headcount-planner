@@ -1,302 +1,142 @@
-# Meal Headcount Planner (MHP)
+# Meal Headcount Planner - Iteration 1 Technical Spec
 
-## Technical Design Document — Iteration 1
+- **Author:** Mehedi Hasan
+- **Date:** 2026-02-10
+- **Version:** 1.0
+- **Status:** Draft (PR Ready)
 
+**Links**
 
-## 1. Overview
-
-### 1.1 Purpose
-
-The Meal Headcount Planner (MHP) is an internal web application intended to replace the existing Excel-based process for collecting and calculating daily meal headcounts for employees.
-
-The primary objective is to provide a **correct, auditable, and role-aware system** that enables accurate meal planning and logistics coordination, while keeping operational and implementation complexity intentionally low.
-
-Iteration 1 focuses on:
-
-* Daily meal participation (default opt-in)
-* Role-based access and overrides
-* Same-day headcount visibility
-
-This iteration deliberately avoids over-engineering and serves as a **foundation** for future enhancements such as cutoffs, calendars, reporting, and automation.
+* PR: [docs: add authoritative technical design for MHP iteration 1](https://github.com/mehedi-1101/meal-headcount-planner/pulls)
+* Issue/Ticket: [ #2](https://github.com/mehedi-1101/meal-headcount-planner/issues/2)
 
 ---
 
-## 1.2 Scope of Iteration 1
+## 2. Summary
 
-### In Scope
+This iteration introduces a backend-driven internal system for collecting daily meal participation data with a default opt-in model. The system supports role-based access, team-scoped overrides, and aggregated headcount visibility for logistics. Iteration 1 prioritizes correctness, auditability, and simplicity, intentionally deferring cutoffs, reporting, and automation. It establishes a clean foundation for future enhancements without over-engineering.
 
-* User authentication with role-based access
-* Daily meal participation (default opt-in, explicit opt-out)
-* Support for multiple meal types
-* Manual override by Team Leads and Admins
-* Aggregated headcount view for Logistics/Admin
-* File-based JSON storage
-* Local execution
+---
 
-### Explicitly Out of Scope (Non-Goals)
+## 3. Problem Statement
+
+The current Excel-based meal tracking process is error-prone, lacks auditability, and requires manual coordination between employees, team leads, and logistics. Incorrect headcounts directly impact procurement and operational planning. There is no reliable single source of truth or role-aware control mechanism.
+
+This iteration addresses these gaps by providing a centralized, role-aware system that produces correct daily headcounts with minimal operational complexity.
+
+---
+
+## 4. Goals and Non-Goals
+
+### Goals
+
+* Provide a correct and auditable daily meal headcount
+* Support default opt-in with explicit opt-out
+* Enforce role-based and team-based permissions
+* Allow manual overrides by authorized roles
+* Expose aggregated headcount data for logistics
+
+### Non-Goals
 
 * Notifications or alerts
 * Historical reporting beyond “today”
 * Meal cutoff enforcement
-* Holiday / office-closed automation
+* Holiday or office-closed automation
 * Meal availability configuration per day
 * Data export (CSV, Excel)
 * External authentication or SSO
 
 ---
 
-## 2. Confirmed Requirements
+## 5. Tech Stack and Rationale
 
-These requirements are based on direct clarification from the project stakeholders and are considered fixed for Iteration 1.
-
----
-
-## 2.1 Roles & Permissions Hierarchy
-
-| Role      | Capabilities                                            |
-| --------- | ------------------------------------------------------- |
-| Employee  | View today’s meals, update own meal participation       |
-| Team Lead | Update meal participation for **own team members only** |
-| Admin     | Full override permissions across all users              |
-| Logistics | View **aggregated headcount only** (read-only)          |
-
-**Permission hierarchy:**
-`Admin > Team Lead > Employee`
-
-The **Logistics** role is intentionally restricted to aggregated data and cannot view or modify individual employee records.
+* **Runtime:** Node.js — predictable execution model, suitable for internal tools
+* **Framework:** Express.js — minimal abstraction, easy to reason about and review
+* **Authentication:** Session-based auth — simpler than token-based auth for server-rendered UI
+* **Storage:** File-based JSON — low data volume, transparent inspection, easy migration later
+* **UI:** Server-rendered pages — avoids frontend auth duplication and reduces setup overhead
 
 ---
 
-## 2.2 Override Visibility & Audit Representation
+## 6. Scope of Changes
 
-* Employees **will not receive notifications** when their meal status is changed by others in Iteration 1.
-* All updates must be represented at the **data layer**, including:
+### In Scope
 
-  * `updatedBy`
-  * `updatedAt`
+* Express backend application bootstrap
+* Authentication and role-based authorization middleware
+* Meal participation business logic
+* Aggregated headcount calculation
+* JSON-based persistence layer
+* Server-rendered UI for daily interaction
 
-This ensures auditability and future transparency without adding UI complexity in the first iteration.
+### Out of Scope
 
----
-
-## 3. Design Assumptions & Decisions
-
-The following decisions are explicitly documented to remove ambiguity and unblock development.
-
----
-
-### 3.1 Time Zone Handling
-
-**Decision**
-
-* The system operates on a single, office-defined time zone (e.g., `Asia/Dhaka`).
-
-**Rationale**
-
-* Meal planning is tied to a physical office.
-* User device time zones are unreliable.
-* Simplifies the definition of “today”.
+* Any feature listed under non-goals
+* Database or cloud infrastructure setup
 
 ---
 
-### 3.2 Work Schedule & Weekends
+## 7. Requirements
 
-**Decision**
+### Functional Requirements
 
-* No automatic disabling of weekends or holidays in Iteration 1.
-* Meals are shown every day by default.
+* Users can view today’s meal participation status
+* Users can opt out of meals for the current day
+* Authorized roles can override meal participation
+* Logistics users can view aggregated headcounts only
 
-**Rationale**
+### Role-Based Behavior
 
-* Office-closed rules are not fully defined.
-* Prevents premature enforcement of business policy.
-* Allows later extension via calendar rules.
+* **Employee:** Update own meal participation
+* **Team Lead:** Update meal participation for own team members only
+* **Admin:** Full override permissions across all users
+* **Logistics:** Read-only access to aggregated headcount data
 
----
+### Validation Rules & Edge Cases
 
-### 3.3 Meal Scope
+* Absence of a record implies opted-in
+* Unauthorized overrides must be rejected
+* All updates must record `updatedBy` and `updatedAt`
 
-**Decision**
+### Definition of Done
 
-* Breakfast is excluded from the system.
-
-**Included meal types**
-
-* Lunch
-* Snacks
-* Iftar
-* Event Dinner
-* Optional Dinner
-
-**Rationale**
-
-* Breakfast does not require procurement planning.
-* Including it adds noise without operational value.
+* Headcount matches default opt-in logic
+* Role and team restrictions enforced server-side
+* Audit fields populated for all updates
+* Aggregated view exposes no individual records to logistics
 
 ---
 
-### 3.4 Meal Availability Per Day
+## 8. User Flows
 
-**Decision**
+### Employee (Happy Path)
 
-* All defined meal types are assumed available every day.
-* No per-day enable/disable logic in Iteration 1.
+1. Logs in
+2. Views today’s meals
+3. Opts out of a meal
 
-**Rationale**
+### Team Lead
 
-* Keeps the iteration focused.
-* Daily configuration can be added later without breaking the model.
+1. Logs in
+2. Selects a team member
+3. Overrides meal participation for that member
 
----
+### Logistics
 
-### 3.5 Cutoff Time
+1. Logs in
+2. Views aggregated headcount per meal
 
-**Decision**
+### Failure Paths
 
-* No cutoff enforcement in Iteration 1.
-* Data model must remain compatible with future cutoff rules.
-
-**Rationale**
-
-* Cutoff rules are explicitly deferred.
-* Avoids speculative logic.
-
----
-
-## 4. Technical Stack
-
-### 4.1 Backend
-
-* **Runtime:** Node.js
-* **Framework:** Express.js
-
-**Justification**
-
-* Minimal abstraction
-* Predictable execution model
-* Easy to reason about and review
-* Sufficient for internal, low-scale usage
+* Unauthorized override attempt
+* Access to individual records by logistics
+* Invalid or missing authentication
 
 ---
 
-### 4.2 Authentication
+## 9. Design
 
-* Session-based authentication
-* Username/password with secure hashing
-
-**Justification**
-
-* Simpler than token-based auth for internal tools
-* Avoids unnecessary frontend complexity in Iteration 1
-
----
-
-### 4.3 Storage
-
-* File-based JSON storage
-* Centralized access through a storage/service layer
-
-**Justification**
-
-* Low data volume (~100 employees)
-* Easy inspection and debugging
-* Clear migration path to a database later
-
----
-
-### 4.4 UI Strategy (Iteration 1)
-
-* Server-rendered pages
-* Minimal UI logic
-* Backend is the single source of truth
-
-**Rationale**
-
-* Reduces setup and learning overhead
-* Ensures correctness and authorization are never bypassed
-* Keeps frontend optional for later iterations
-
----
-
-## 5. Repository Structure
-
-The project uses a **single repository with a backend-first structure**, intentionally designed to support a future frontend (e.g., React) without backend refactoring.
-
-```
-mhp/
- ├─ backend/
- │   ├─ src/
- │   │   ├─ app.js              # Express bootstrap
- │   │   ├─ routes/             # HTTP route definitions
- │   │   │   ├─ auth.js
- │   │   │   ├─ meals.js
- │   │   │   └─ headcount.js
- │   │   ├─ middleware/         # Auth & role checks
- │   │   │   └─ auth.js
- │   │   ├─ services/           # Business logic
- │   │   │   ├─ userService.js
- │   │   │   └─ mealService.js
- │   │   ├─ storage/            # JSON access layer
- │   │   │   └─ jsonStore.js
- │   │   └─ views/              # Server-rendered UI
- │   ├─ data/                   # JSON data files
- │   └─ package.json
- ├─ docs/
- └─ README.md
-```
-
----
-
-## 6. Data Model (Conceptual)
-
-### 6.1 User
-
-* `id`
-* `name`
-* `role` (EMPLOYEE | TEAM_LEAD | ADMIN | LOGISTICS)
-* `teamId`
-
----
-
-### 6.2 Meal Participation
-
-* `userId`
-* `date`
-* `mealType`
-* `status` (IN | OUT)
-* `updatedBy`
-* `updatedAt`
-
-**Important Rule**
-
-* Absence of a record implies **opted-in by default**.
-
----
-
-## 7. Headcount Calculation Logic
-
-For a given date and meal type:
-
-```
-Headcount =
-  Total eligible employees
-  − Explicit opt-out records
-```
-
-This avoids unnecessary pre-population, minimizes storage, and guarantees correctness.
-
----
-
-## 8. Security & Access Control
-
-* All protected routes require authentication
-* Role and team-based authorization enforced at API level
-* UI visibility is role-aware but never trusted
-* Logistics users can access aggregated data only
-
----
-
-## 9. High-Level Request Flow
+### High-Level Architecture
 
 ```
 Browser
@@ -312,21 +152,101 @@ Service Layer
 JSON Storage
 ```
 
-This ensures a single source of truth for business rules and authorization.
+### Data Model
+
+**User**
+
+* `id`
+* `name`
+* `role` (EMPLOYEE | TEAM_LEAD | ADMIN | LOGISTICS)
+* `teamId`
+
+**Meal Participation**
+
+* `userId`
+* `date`
+* `mealType`
+* `status` (IN | OUT)
+* `updatedBy`
+* `updatedAt`
+
+**Important Rule:** Absence of a record implies opted-in by default.
+
+### Interfaces (Illustrative)
+
+* `POST /auth/login`
+* `POST /meals/:mealType/out`
+* `POST /meals/:mealType/override`
+* `GET /headcount`
+
+Error cases return appropriate HTTP status codes (401, 403, 400).
 
 ---
 
-## 10. Risks & Mitigations
+## 10. Key Decisions and Trade-offs
 
-| Risk                     | Mitigation                           |
-| ------------------------ | ------------------------------------ |
-| Ambiguous business rules | Explicit assumptions documented      |
-| Incorrect headcount      | Default opt-in logic clearly defined |
-| Future scope expansion   | Extensible data model and layering   |
+* File-based storage over database — avoids infra overhead in early iteration
+* Default opt-in model — reduces data volume and prevents incorrect opt-outs
+* No cutoff enforcement — avoids premature business rule assumptions
+* Single office time zone — simplifies definition of “today”
+
+Alternatives (DB, frontend-heavy UI, cutoff logic) were intentionally deferred.
 
 ---
 
-## 11. Summary
+## 11. Security and Access Control
 
-Iteration 1 of MHP prioritizes **correctness, clarity, and auditability** over feature richness.
-The system is intentionally simple, backend-driven, and extensible, forming a strong and reviewable foundation for future iterations.
+* All protected routes require authentication
+* Authorization enforced at API level
+* Team scoping enforced for Team Lead actions
+* Logistics role restricted to aggregated data only
+* Secrets never stored in code or logs
+
+---
+
+## 12. Testing Plan
+
+* **Unit Tests:** Headcount calculation, role checks
+* **Integration Tests:** Override flows per role
+* **Manual QA:** Login → opt-out → verify aggregate → override → verify audit fields
+
+---
+
+## 13. Operations
+
+* **Logging:** request ID, user ID, action type
+* **Monitoring:** error rate and request latency (basic)
+* **Configuration:** environment variables for port and session secret
+* **Deployment:** local execution only for Iteration 1
+
+---
+
+## 14. Risks, Assumptions, Open Questions
+
+### Risks
+
+* Ambiguous future business rules
+* Misuse of overrides without visibility
+
+### Assumptions
+
+* Single office location and time zone
+* Low concurrent usage
+
+### Open Questions
+
+* Should logistics see per-meal or per-day-only aggregates?
+
+---
+
+## 15. Appendix
+
+### Meal Types (Iteration 1)
+
+* Lunch
+* Snacks
+* Iftar
+* Event Dinner
+* Optional Dinner
+
+Breakfast is intentionally excluded due to lack of procurement impact.
