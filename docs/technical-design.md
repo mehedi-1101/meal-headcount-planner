@@ -68,6 +68,7 @@ This iteration addresses these gaps by providing a centralized, role-aware syste
 * Aggregated headcount calculation
 * JSON-based persistence layer
 * Server-rendered UI for daily interaction
+* Administrative user bootstrap via script-based user creation
 
 ### Out of Scope
 
@@ -180,6 +181,19 @@ JSON Storage
 * `GET /headcount`
 
 Error cases return appropriate HTTP status codes (401, 403, 400).
+
+### User Provisioning (Iteration 1)
+
+User accounts are created via a script-based administrative process.
+There is no self-service or UI-based registration in Iteration 1.
+
+This approach:
+- Keeps authentication and authorization simple
+- Avoids unnecessary UI and validation complexity
+- Matches internal tooling usage patterns
+
+The script writes directly to the JSON storage layer and applies the same
+password hashing and validation rules as runtime authentication.
 
 ---
 
