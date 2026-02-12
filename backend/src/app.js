@@ -1,3 +1,6 @@
+import session from "express-session";
+import authRoutes from "./routes/auth.js";
+
 const express = require('express');
 const session = require('express-session');
 
@@ -13,11 +16,17 @@ app.use(express.urlencoded({ extended: true }));
 // session config (will refine later)
 app.use(
   session({
-    secret: 'mhp-dev-secret',
+    name: "mhp-session",
+    secret: "dev-secret-change-later",
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+    },
   })
 );
+
+app.use("/auth", authRoutes);
 
 // temporary health check
 app.get('/health', (req, res) => {
