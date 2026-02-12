@@ -2,7 +2,7 @@ node_modules/
 *.log
 .env
 .DS_Store
-
+dev.md 
 # Data files (user data)
 backend/data/*.json
 !backend/data/.gitkeep
