@@ -1,0 +1,26 @@
+<%- include('partials/header') %>
+
+    <h1>Headcount — <%= data.date %>
+    </h1>
+    <p style="color:#94a3b8; margin-bottom:1.5rem;">
+        Total registered users: <strong>
+            <%= data.totalUsers %>
+        </strong>
+    </p>
+
+    <div class="headcount-grid">
+        <% mealTypes.forEach(function(type) { %>
+            <% var count=data.headcount[type]; %>
+                <% var displayName=type.replace(/_/g, ' ' ); %>
+                    <div class="headcount-card">
+                        <div class="headcount-number">
+                            <%= count %>
+                        </div>
+                        <div class="meal-label">
+                            <%= displayName %>
+                        </div>
+                    </div>
+                    <% }); %>
+    </div>
+
+    <%- include('partials/footer') %>

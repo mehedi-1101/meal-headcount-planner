@@ -1,0 +1,35 @@
+<% var user=null; %>
+    <%- include('partials/header') %>
+
+        <div style="display:flex; justify-content:center; align-items:center; min-height:70vh;">
+            <div class="card" style="width:100%; max-width:400px;">
+                <h1 style="text-align:center; margin-bottom:1.5rem;">🍽️ MHP Login</h1>
+
+                <% if (error) { %>
+                    <div class="alert alert-error">
+                        <%= error %>
+                    </div>
+                    <% } %>
+
+                        <form method="POST" action="/login">
+                            <div style="margin-bottom:1rem;">
+                                <label
+                                    style="display:block; margin-bottom:0.4rem; color:#94a3b8; font-size:0.875rem;">Username</label>
+                                <input type="text" name="username" required
+                                    style="width:100%; padding:0.6rem 0.8rem; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; font-size:1rem;"
+                                    placeholder="Enter username" />
+                            </div>
+                            <div style="margin-bottom:1.5rem;">
+                                <label
+                                    style="display:block; margin-bottom:0.4rem; color:#94a3b8; font-size:0.875rem;">Password</label>
+                                <input type="password" name="password" required
+                                    style="width:100%; padding:0.6rem 0.8rem; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; font-size:1rem;"
+                                    placeholder="Enter password" />
+                            </div>
+                            <button type="submit" class="btn btn-primary"
+                                style="width:100%; padding:0.7rem;">Login</button>
+                        </form>
+            </div>
+        </div>
+
+        <%- include('partials/footer') %>
