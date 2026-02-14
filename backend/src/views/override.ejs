@@ -1,0 +1,66 @@
+<%- include('partials/header') %>
+
+    <h1>Override Meals</h1>
+    <p style="color:#94a3b8; margin-bottom:1.5rem;">
+        <% if (user.role==='ADMIN' ) { %>
+            You can override meals for any user.
+            <% } else { %>
+                You can override meals for your team members.
+                <% } %>
+    </p>
+
+    <% if (members.length===0) { %>
+        <div class="card">
+            <p style="color:#94a3b8;">No team members found.</p>
+        </div>
+        <% } else { %>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <% mealTypes.forEach(function(type) { %>
+                                <th>
+                                    <%= type.replace(/_/g, ' ' ) %>
+                                </th>
+                                <% }); %>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% members.forEach(function(member) { %>
+                            <tr>
+                                <td style="font-weight:500;">
+                                    <%= member.name %><br>
+                                        <span style="color:#64748b; font-size:0.75rem;">
+                                            <%= member.role %> &bull; <%= member.teamId || 'No team' %>
+                                        </span>
+                                </td>
+                                <% mealTypes.forEach(function(type) { %>
+                                    <% var status=member.mealStatus[type]; %>
+                                        <% var isIn=status==='IN' ; %>
+                                            <td>
+                                                <span class="<%= isIn ? 'status-in' : 'status-out' %>"
+                                                    style="font-size:0.8rem;">
+                                                    <%= status %>
+                                                </span><br>
+                                                <form method="POST" action="/meals/<%= type %>/override"
+                                                    style="display:inline; margin-top:0.25rem;">
+                                                    <input type="hidden" name="targetUserId" value="<%= member.id %>">
+                                                    <input type="hidden" name="status"
+                                                        value="<%= isIn ? 'OUT' : 'IN' %>">
+                                                    <button type="submit"
+                                                        class="btn <%= isIn ? 'btn-opt-out' : 'btn-opt-in' %>"
+                                                        style="font-size:0.75rem; padding:0.25rem 0.5rem;">
+                                                        Set <%= isIn ? 'OUT' : 'IN' %>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                            <% }); %>
+                            </tr>
+                            <% }); %>
+                    </tbody>
+                </table>
+            </div>
+            <% } %>
+
+                <%- include('partials/footer') %>

@@ -1,0 +1,52 @@
+<%- include('partials/header') %>
+
+    <h1>Today's Meals</h1>
+    <p style="color:#94a3b8; margin-bottom:1.5rem;">
+        Welcome, <strong>
+            <%= user.name %>
+        </strong>. Default: you're opted
+        <span class="status-in">IN</span> for all meals.
+    </p>
+
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Meal</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% mealTypes.forEach(function(type) { %>
+                    <% var status=mealStatus[type]; %>
+                        <% var isIn=status==='IN' ; %>
+                            <% var displayName=type.replace(/_/g, ' ' ); %>
+                                <tr>
+                                    <td style="font-weight:500;">
+                                        <%= displayName %>
+                                    </td>
+                                    <td>
+                                        <span class="<%= isIn ? 'status-in' : 'status-out' %>">
+                                            <%= status %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <% if (isIn) { %>
+                                            <form method="POST" action="/meals/<%= type %>/out" style="display:inline">
+                                                <button type="submit" class="btn btn-opt-out">Opt Out</button>
+                                            </form>
+                                            <% } else { %>
+                                                <form method="POST" action="/meals/<%= type %>/in"
+                                                    style="display:inline">
+                                                    <button type="submit" class="btn btn-opt-in">Opt In</button>
+                                                </form>
+                                                <% } %>
+                                    </td>
+                                </tr>
+                                <% }); %>
+            </tbody>
+        </table>
+    </div>
+
+    <%- include('partials/footer') %>
