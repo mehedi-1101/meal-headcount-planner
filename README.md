@@ -52,11 +52,38 @@ Detailed architecture and design decisions are documented in
 
 ---
 
+#### Quick Start
+
+See [backend/README.md](backend/README.md) for setup instructions.
+
+```bash
+cd backend
+npm install
+cp .env.example .env
+npm run create-user "Admin" admin admin123 ADMIN
+npm start
+```
+
+Open http://localhost:3000
+
+---
+
 #### Status
 
-This repository currently contains:
+**Iteration 1: Complete**
 
-* Project bootstrap
-* Authoritative technical design for Iteration 1
+This repository contains:
 
-Implementation will follow the approved design.
+* ✅ Full backend implementation
+* ✅ Role-based access control (Employee, Team Lead, Admin, Logistics)
+* ✅ Daily meal participation (opt-in/opt-out)
+* ✅ Team-scoped overrides
+* ✅ Aggregated headcount visibility
+* ✅ File-based JSON storage
+* ✅ Server-rendered UI
+* ✅ User provisioning script
+* ✅ Environment configuration
+* ✅ Basic error handling
+* ✅ Test suite (14 tests passing)
+
+See [backend/README.md](backend/README.md) for setup instructions.
