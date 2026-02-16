@@ -1,0 +1,38 @@
+## Iteration 2 — Team/Department Views + Special Days
+### Feature requests
+1. **Team-based visibility**
+   - Employees can see which team they belong to.
+   - Team Leads can view participation for their own team for the day.
+   - Admin/Logistics can view participation across all teams.
+
+2. **Bulk and exception handling**
+   - Team Leads/Admin can apply bulk actions for their scope (e.g., mark a group as opted out due to offsite/event).
+
+3. **Special day controls**
+   - Admin/Logistics can mark a day as one of:
+     - Office Closed
+     - Government Holiday
+     - Special Celebration Day (with a note)
+   - The system adjusts meal availability based on the day type (e.g., office closed disables meals).
+
+4. **Improved headcount reporting**
+   - Headcount totals available by:
+     - Meal type
+     - Team
+     - Overall total
+     - Office vs WFH split
+
+5. **Live updates (no refresh)**
+   - When an employee updates meal participation, the visible headcount totals update immediately without reloading the page.
+
+6. **Daily announcement draft**
+   - Logistics/Admin can generate a copy/paste-friendly message for a selected date.
+   - The message includes meal-wise totals and highlights special-day notes (holiday/office closed/celebration).
+
+7. **Work location for a date**
+   - Employees can set their work location for a selected date: Office / WFH.
+   - Team Leads / Admin can correct missing work-location entries when needed.
+
+8. **Company-wide WFH period**
+   - Admin/Logistics can declare a date range as “WFH for everyone”.
+   - During the declared period, the system treats employees as WFH by default for reporting.
