@@ -1,8 +1,8 @@
 import express from "express";
 import { MEAL_TYPES } from "../constants/mealTypes.js";
 import { ROLES } from "../constants/roles.js";
-import { requireAuth } from "../middleware/auth.js";
-import { getUserById } from "../services/userService.js";
+import { requireAuth, requireRole } from "../middleware/auth.js";
+import { getUserById, getTeamMembers } from "../services/userService.js";
 import { optOut, optIn } from "../services/mealService.js";
 
 const router = express.Router();
@@ -92,5 +92,86 @@ router.post("/:mealType/override", requireAuth, (req, res) => {
         message: `Overrode ${targetUser.name}'s ${mealType} to ${status}`,
     });
 });
+
+/**
+ * POST /api/meals/bulk-override
+ * Bulk override meal participation for multiple users, meals, and dates.
+ * Body: { userIds, mealTypes, status, startDate, endDate }
+ * TL: own team only. Admin: unrestricted.
+ * Rejects entirely if any target user is outside actor's scope.
+ */
+router.post(
+    "/bulk-override",
+    requireAuth,
+    requireRole([ROLES.TEAM_LEAD, ROLES.ADMIN]),
+    (req, res) => {
+        const { userIds, mealTypes, status, startDate, endDate } = req.body;
+        const currentUser = req.session.user;
+
+        if (!userIds || !mealTypes || !status || !startDate || !endDate) {
+            return res.status(400).json({
+                error: "userIds, mealTypes, status, startDate, and endDate are required",
+            });
+        }
+
+        if (!Array.isArray(userIds) || !Array.isArray(mealTypes)) {
+            return res.status(400).json({ error: "userIds and mealTypes must be arrays" });
+        }
+
+        if (!["IN", "OUT"].includes(status)) {
+            return res.status(400).json({ error: "status must be IN or OUT" });
+        }
+
+        for (const mt of mealTypes) {
+            if (!MEAL_TYPES.includes(mt)) {
+                return res.status(400).json({ error: `Invalid meal type: ${mt}` });
+            }
+        }
+
+        // Validate all target users exist and are within scope
+        const targetUsers = [];
+        for (const uid of userIds) {
+            const user = getUserById(uid);
+            if (!user) {
+                return res.status(404).json({ error: `User not found: ${uid}` });
+            }
+            targetUsers.push(user);
+        }
+
+        // TL scope check: reject entirely if any user is outside their team
+        if (currentUser.role === ROLES.TEAM_LEAD) {
+            const outOfScope = targetUsers.find((u) => u.teamId !== currentUser.teamId);
+            if (outOfScope) {
+                return res.status(403).json({
+                    error: "Team Leads can only bulk override their own team members",
+                });
+            }
+        }
+
+        // Generate date range
+        const dates = [];
+        let current = startDate;
+        while (current <= endDate) {
+            dates.push(current);
+            const [y, m, d] = current.split("-").map(Number);
+            const next = new Date(y, m - 1, d + 1);
+            current = next.toISOString().split("T")[0];
+        }
+
+        // Apply overrides
+        const action = status === "OUT" ? optOut : optIn;
+        let count = 0;
+        for (const date of dates) {
+            for (const uid of userIds) {
+                for (const mt of mealTypes) {
+                    action(uid, mt, currentUser.id, date);
+                    count++;
+                }
+            }
+        }
+
+        res.json({ message: `Applied ${count} overrides`, count });
+    }
+);
 
 export default router;
