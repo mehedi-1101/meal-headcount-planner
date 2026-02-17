@@ -10,6 +10,7 @@ import headcountRoutes from "./routes/headcount.js";
 import specialDaysRoutes from "./routes/specialDays.js";
 import settingsRoutes from "./routes/settings.js";
 import teamRoutes from "./routes/team.js";
+import workLocationRoutes from "./routes/workLocation.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 dotenv.config();
@@ -51,6 +52,7 @@ app.use("/api/headcount", headcountRoutes);
 app.use("/api/special-days", specialDaysRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/team", teamRoutes);
+app.use("/api/work-location", workLocationRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
