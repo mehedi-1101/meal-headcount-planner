@@ -7,6 +7,9 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/auth.js";
 import mealRoutes from "./routes/meals.js";
 import headcountRoutes from "./routes/headcount.js";
+import specialDaysRoutes from "./routes/specialDays.js";
+import settingsRoutes from "./routes/settings.js";
+import teamRoutes from "./routes/team.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 dotenv.config();
@@ -45,6 +48,9 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/meals", mealRoutes);
 app.use("/api/headcount", headcountRoutes);
+app.use("/api/special-days", specialDaysRoutes);
+app.use("/api/settings", settingsRoutes);
+app.use("/api/team", teamRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
