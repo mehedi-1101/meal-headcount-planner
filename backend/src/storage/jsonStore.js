@@ -36,6 +36,9 @@ export function readJson(fileName, fallback = []) {
 /**
  * Write data to a JSON file (pretty-printed for easy inspection).
  * Creates the file if it doesn't exist.
+ *
+ * Note: safe for concurrent requests in single-process Node because
+ * writeFileSync is blocking — no preemption between read and write.
  */
 export function writeJson(fileName, data) {
   const filePath = getFilePath(fileName);

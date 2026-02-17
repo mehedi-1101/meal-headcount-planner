@@ -1,10 +1,10 @@
-import { getHeadcount, optOut, optIn, getUserMealStatus } from '../../src/services/mealService.js';
+import { getHeadcount, optOut, optIn, getUserMealStatus, getRecordsForDate } from '../../src/services/mealService.js';
 import { writeJson } from '../../src/storage/jsonStore.js';
 
 describe('mealService', () => {
   beforeEach(() => {
     // Reset meals.json before each test
-    writeJson('test.json', []);
+    writeJson('meals.json', []);
   });
 
   describe('getHeadcount', () => {
@@ -41,17 +41,24 @@ describe('mealService', () => {
   });
 
   describe('optIn', () => {
-    test('removes opt-out record', () => {
+    test('retains record with status IN for audit trail', () => {
       const date = '2025-01-15';
       optOut('u123', 'LUNCH', 'u123', date);
-      
+
       let status = getUserMealStatus('u123', ['LUNCH'], date);
       expect(status.LUNCH).toBe('OUT');
 
       optIn('u123', 'LUNCH', 'u123', date);
-      
+
       status = getUserMealStatus('u123', ['LUNCH'], date);
       expect(status.LUNCH).toBe('IN');
+
+      // Record should still exist with status IN (not deleted)
+      const records = getRecordsForDate(date);
+      const record = records.find(r => r.userId === 'u123' && r.mealType === 'LUNCH');
+      expect(record).toBeDefined();
+      expect(record.status).toBe('IN');
+      expect(record.updatedBy).toBe('u123');
     });
   });
 });

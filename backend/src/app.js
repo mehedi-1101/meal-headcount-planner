@@ -7,7 +7,6 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/auth.js";
 import mealRoutes from "./routes/meals.js";
 import headcountRoutes from "./routes/headcount.js";
-import pageRoutes from "./routes/pages.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 dotenv.config();
@@ -25,7 +24,6 @@ if (!process.env.SESSION_SECRET) {
 
 // --- Middleware ---
 
-// Parse form data and JSON bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -42,23 +40,24 @@ app.use(
   })
 );
 
-// View engine setup (EJS for server-rendered pages)
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+// --- API Routes ---
 
-// --- Routes ---
-
-// API routes
-app.use("/auth", authRoutes);
-app.use("/meals", mealRoutes);
-app.use("/headcount", headcountRoutes);
-
-// Page routes (server-rendered views)
-app.use("/", pageRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/meals", mealRoutes);
+app.use("/api/headcount", headcountRoutes);
 
 // Health check
-app.get("/health", (req, res) => {
+app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
+});
+
+// --- Static files (React build output) ---
+
+app.use(express.static(path.join(__dirname, "..", "public")));
+
+// Catch-all: serve index.html for client-side routing
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "index.html"));
 });
 
 // Error handler (must be last)
@@ -69,3 +68,5 @@ app.use(errorHandler);
 const server = app.listen(PORT, () => {
   console.log(`MHP backend running on http://localhost:${PORT}`);
 });
+
+export default app;

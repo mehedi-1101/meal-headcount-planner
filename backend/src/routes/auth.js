@@ -28,11 +28,19 @@ router.post("/login", async (req, res) => {
 
   req.session.user = {
     id: user.id,
+    name: user.name,
     role: user.role,
     teamId: user.teamId,
   };
 
   res.json({ message: "Login successful" });
+});
+
+router.get("/me", (req, res) => {
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+  res.json(req.session.user);
 });
 
 router.post("/logout", (req, res) => {

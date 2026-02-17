@@ -21,10 +21,6 @@ router.post("/:mealType/out", requireAuth, (req, res) => {
 
     optOut(user.id, mealType, user.id);
 
-    // If it came from a form, redirect back
-    if (req.headers.accept && req.headers.accept.includes("text/html")) {
-        return res.redirect("/dashboard");
-    }
     res.json({ message: `Opted out of ${mealType}` });
 });
 
@@ -42,9 +38,6 @@ router.post("/:mealType/in", requireAuth, (req, res) => {
 
     optIn(user.id, mealType, user.id);
 
-    if (req.headers.accept && req.headers.accept.includes("text/html")) {
-        return res.redirect("/dashboard");
-    }
     res.json({ message: `Opted in to ${mealType}` });
 });
 
@@ -95,10 +88,6 @@ router.post("/:mealType/override", requireAuth, (req, res) => {
         optIn(targetUserId, mealType, currentUser.id);
     }
 
-    // Redirect back to override page if from form
-    if (req.headers.accept && req.headers.accept.includes("text/html")) {
-        return res.redirect("/override");
-    }
     res.json({
         message: `Overrode ${targetUser.name}'s ${mealType} to ${status}`,
     });

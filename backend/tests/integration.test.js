@@ -4,7 +4,6 @@ import session from 'express-session';
 import authRoutes from '../src/routes/auth.js';
 import mealRoutes from '../src/routes/meals.js';
 import headcountRoutes from '../src/routes/headcount.js';
-import { requireAuth } from '../src/middleware/auth.js';
 
 // Create test app
 const app = express();
@@ -14,14 +13,14 @@ app.use(session({
   resave: false,
   saveUninitialized: false
 }));
-app.use('/auth', authRoutes);
-app.use('/meals', mealRoutes);
-app.use('/headcount', headcountRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/meals', mealRoutes);
+app.use('/api/headcount', headcountRoutes);
 
 describe('Authentication & Authorization', () => {
   test('login succeeds with valid credentials', async () => {
     const res = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ username: 'mehedi', password: 'pass123' });
     
     expect(res.status).toBe(200);
@@ -30,7 +29,7 @@ describe('Authentication & Authorization', () => {
 
   test('login fails with invalid credentials', async () => {
     const res = await request(app)
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ username: 'mehedi', password: 'wrongpass' });
     
     expect(res.status).toBe(401);
@@ -38,7 +37,7 @@ describe('Authentication & Authorization', () => {
 
   test('protected route rejects unauthenticated request', async () => {
     const res = await request(app)
-      .get('/headcount');
+      .get('/api/headcount');
     
     expect(res.status).toBe(401);
   });
@@ -47,10 +46,10 @@ describe('Authentication & Authorization', () => {
     const agent = request.agent(app);
     
     await agent
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ username: 'alice', password: 'pass123' });
     
-    const res = await agent.get('/headcount');
+    const res = await agent.get('/api/headcount');
     expect(res.status).toBe(403);
   });
 
@@ -58,10 +57,10 @@ describe('Authentication & Authorization', () => {
     const agent = request.agent(app);
     
     await agent
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ username: 'mehedi', password: 'pass123' });
     
-    const res = await agent.get('/headcount');
+    const res = await agent.get('/api/headcount');
     expect(res.status).toBe(200);
   });
 
@@ -69,10 +68,10 @@ describe('Authentication & Authorization', () => {
     const agent = request.agent(app);
     
     await agent
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ username: 'logistics', password: 'pass123' });
     
-    const res = await agent.get('/headcount');
+    const res = await agent.get('/api/headcount');
     expect(res.status).toBe(200);
   });
 });
@@ -82,11 +81,11 @@ describe('Role-Based Override', () => {
     const agent = request.agent(app);
     
     await agent
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ username: 'bob', password: 'pass123' });
     
     const res = await agent
-      .post('/meals/LUNCH/override')
+      .post('/api/meals/LUNCH/override')
       .send({ targetUserId: 'u1770959607924', status: 'OUT' });
     
     expect(res.status).toBe(200);
@@ -96,11 +95,11 @@ describe('Role-Based Override', () => {
     const agent = request.agent(app);
     
     await agent
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ username: 'bob', password: 'pass123' });
     
     const res = await agent
-      .post('/meals/LUNCH/override')
+      .post('/api/meals/LUNCH/override')
       .send({ targetUserId: 'u1770959613106', status: 'OUT' });
     
     expect(res.status).toBe(403);
@@ -110,11 +109,11 @@ describe('Role-Based Override', () => {
     const agent = request.agent(app);
     
     await agent
-      .post('/auth/login')
+      .post('/api/auth/login')
       .send({ username: 'mehedi', password: 'pass123' });
     
     const res = await agent
-      .post('/meals/LUNCH/override')
+      .post('/api/meals/LUNCH/override')
       .send({ targetUserId: 'u1770959613106', status: 'OUT' });
     
     expect(res.status).toBe(200);

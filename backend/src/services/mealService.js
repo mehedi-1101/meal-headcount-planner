@@ -55,18 +55,34 @@ export function optOut(userId, mealType, updatedBy, date) {
 
 /**
  * Opt a user back IN to a specific meal for a date.
- * Since "absence of record = opted in", we simply remove the opt-out record.
+ * Retains the record with status "IN" for audit trail
+ * (who changed it and when), instead of deleting.
  */
 export function optIn(userId, mealType, updatedBy, date) {
     if (!date) date = getTodayDate();
 
     const all = readJson(MEALS_FILE, []);
 
-    const filtered = all.filter(
-        (r) => !(r.userId === userId && r.date === date && r.mealType === mealType)
+    const existing = all.find(
+        (r) => r.userId === userId && r.date === date && r.mealType === mealType
     );
 
-    writeJson(MEALS_FILE, filtered);
+    if (existing) {
+        existing.status = "IN";
+        existing.updatedBy = updatedBy;
+        existing.updatedAt = new Date().toISOString();
+    } else {
+        all.push({
+            userId,
+            date,
+            mealType,
+            status: "IN",
+            updatedBy,
+            updatedAt: new Date().toISOString(),
+        });
+    }
+
+    writeJson(MEALS_FILE, all);
 }
 
 /**
