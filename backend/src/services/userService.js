@@ -15,3 +15,12 @@ export function getUserById(id) {
   const users = readJson(USERS_FILE);
   return users.find((u) => u.id === id);
 }
+
+export function getTeamMembers(teamId) {
+  const users = getAllUsers();
+  return users.filter((u) => u.teamId === teamId);
+}
+
+export function getTeams() {
+  return readJson("teams.json", []);
+}
