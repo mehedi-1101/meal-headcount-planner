@@ -7,10 +7,23 @@ import {
     getEffectiveLocation,
     setLocation,
 } from "../services/workLocationService.js";
+import { enforceCutoff } from "../middleware/cutoff.js";
 
 const router = express.Router();
 
 const validLocations = Object.values(LOCATIONS);
+
+function getTodayDate() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+}
+
+function isPastDate(date) {
+    return date < getTodayDate();
+}
 
 /**
  * GET /api/work-location?userId=...&date=...
@@ -34,12 +47,16 @@ router.get("/", requireAuth, (req, res) => {
  * Employee sets their own location for a date.
  * Body: { date, location }
  */
-router.post("/", requireAuth, (req, res) => {
+router.post("/", requireAuth, enforceCutoff((req) => req.body.date), (req, res) => {
     const { date, location } = req.body;
     const user = req.session.user;
 
     if (!date || !location) {
         return res.status(400).json({ error: "date and location are required" });
+    }
+
+    if (isPastDate(date)) {
+        return res.status(400).json({ error: "Cannot change work location for past dates" });
     }
 
     if (!validLocations.includes(location)) {
@@ -65,6 +82,10 @@ router.post(
 
         if (!targetUserId || !date || !location) {
             return res.status(400).json({ error: "targetUserId, date, and location are required" });
+        }
+
+        if (isPastDate(date)) {
+            return res.status(400).json({ error: "Cannot change work location for past dates" });
         }
 
         if (!validLocations.includes(location)) {
