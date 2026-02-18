@@ -14,8 +14,17 @@ const router = express.Router();
 const ALLOWED_ROLES = [ROLES.ADMIN, ROLES.LOGISTICS];
 const validTypes = Object.values(SPECIAL_DAY_TYPES);
 
+/**
+ * GET /api/special-days?month=YYYY-MM
+ * Optional month filter. If omitted, returns all.
+ */
 router.get("/", requireAuth, requireRole(ALLOWED_ROLES), (req, res) => {
-    res.json(getAllSpecialDays());
+    let days = getAllSpecialDays();
+    const month = req.query.month;
+    if (month) {
+        days = days.filter((d) => d.date.startsWith(month));
+    }
+    res.json(days);
 });
 
 router.post("/", requireAuth, requireRole(ALLOWED_ROLES), (req, res) => {
