@@ -8,6 +8,7 @@ import {
     updateSpecialDay,
     deleteSpecialDay,
 } from "../services/specialDayService.js";
+import { broadcast } from "../services/sseService.js";
 
 const router = express.Router();
 
@@ -46,6 +47,7 @@ router.post("/", requireAuth, requireRole(ALLOWED_ROLES), (req, res) => {
             meals,
             createdBy: req.session.user.id,
         });
+        broadcast("special-day-change", { date });
         res.status(201).json(entry);
     } catch (err) {
         res.status(409).json({ error: err.message });
@@ -62,6 +64,7 @@ router.put("/:date", requireAuth, requireRole(ALLOWED_ROLES), (req, res) => {
 
     try {
         const updated = updateSpecialDay(date, { type, note, meals });
+        broadcast("special-day-change", { date });
         res.json(updated);
     } catch (err) {
         res.status(404).json({ error: err.message });
@@ -71,6 +74,7 @@ router.put("/:date", requireAuth, requireRole(ALLOWED_ROLES), (req, res) => {
 router.delete("/:date", requireAuth, requireRole(ALLOWED_ROLES), (req, res) => {
     try {
         deleteSpecialDay(req.params.date);
+        broadcast("special-day-change", { date: req.params.date });
         res.json({ message: "Deleted" });
     } catch (err) {
         res.status(404).json({ error: err.message });

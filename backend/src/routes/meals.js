@@ -6,6 +6,7 @@ import { getUserById } from "../services/userService.js";
 import { optOut, optIn, getUserMealStatus } from "../services/mealService.js";
 import { getAvailableMeals } from "../services/availabilityService.js";
 import { enforceCutoff } from "../middleware/cutoff.js";
+import { broadcast } from "../services/sseService.js";
 
 const router = express.Router();
 
@@ -55,6 +56,7 @@ router.post("/:mealType/opt-out", requireAuth, enforceCutoff(mealDateExtractor),
     }
 
     optOut(user.id, mealType, user.id, date);
+    broadcast("headcount-update", { date: targetDate });
     res.json({ message: `Opted out of ${mealType}` });
 });
 
@@ -78,6 +80,7 @@ router.post("/:mealType/opt-in", requireAuth, enforceCutoff(mealDateExtractor), 
     }
 
     optIn(user.id, mealType, user.id, date);
+    broadcast("headcount-update", { date: targetDate });
     res.json({ message: `Opted in to ${mealType}` });
 });
 
@@ -124,6 +127,8 @@ router.post(
             optIn(targetUserId, mealType, currentUser.id, date);
         }
 
+        const targetDate = date || new Date().toISOString().split("T")[0];
+        broadcast("headcount-update", { date: targetDate });
         res.json({
             message: `Overrode ${targetUser.name}'s ${mealType} to ${status}`,
         });
@@ -202,6 +207,10 @@ router.post(
             }
         }
 
+        // Broadcast for each unique date affected
+        for (const date of dates) {
+            broadcast("headcount-update", { date });
+        }
         res.json({ message: `Applied ${count} overrides`, count });
     }
 );
