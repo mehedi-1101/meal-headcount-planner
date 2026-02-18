@@ -1,0 +1,70 @@
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.wfhRow td {
+  opacity: 0.5;
+}
+
+.wfhCell {
+  color: var(--color-text-3);
+  font-size: 13px;
+}
+
+.memberName {
+  font-weight: 500;
+}
+
+.memberMeta {
+  font-size: 11px;
+  color: var(--color-text-3);
+  margin-top: 1px;
+}
+
+.toggleBadge {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: opacity 0.15s;
+}
+
+.toggleBadge:hover {
+  opacity: 0.75;
+}
+
+/* Bulk modal */
+.bulkSection {
+  margin-bottom: 20px;
+}
+
+.checkGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.checkItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.radioGroup {
+  display: flex;
+  gap: 20px;
+  margin-top: 8px;
+}
+
+.dateRange {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
