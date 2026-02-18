@@ -11,6 +11,8 @@ import specialDaysRoutes from "./routes/specialDays.js";
 import settingsRoutes from "./routes/settings.js";
 import teamRoutes from "./routes/team.js";
 import workLocationRoutes from "./routes/workLocation.js";
+import eventsRoutes from "./routes/events.js";
+import announcementRoutes from "./routes/announcement.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 dotenv.config();
@@ -53,6 +55,8 @@ app.use("/api/special-days", specialDaysRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/team", teamRoutes);
 app.use("/api/work-location", workLocationRoutes);
+app.use("/api/events", eventsRoutes);
+app.use("/api/announcement", announcementRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

@@ -8,6 +8,7 @@ import {
     setLocation,
 } from "../services/workLocationService.js";
 import { enforceCutoff } from "../middleware/cutoff.js";
+import { broadcast } from "../services/sseService.js";
 
 const router = express.Router();
 
@@ -64,6 +65,7 @@ router.post("/", requireAuth, enforceCutoff((req) => req.body.date), (req, res) 
     }
 
     setLocation(user.id, date, location, user.id);
+    broadcast("headcount-update", { date });
     res.json({ message: `Location set to ${location} for ${date}` });
 });
 
@@ -105,6 +107,7 @@ router.post(
         }
 
         setLocation(targetUserId, date, location, currentUser.id);
+        broadcast("headcount-update", { date });
         res.json({ message: `Set ${targetUser.name}'s location to ${location} for ${date}` });
     }
 );
