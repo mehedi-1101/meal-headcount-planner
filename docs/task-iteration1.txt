@@ -1,0 +1,41 @@
+# Project: Meal Headcount Planner (MHP)
+A lightweight internal web app to replace the current Excel-based process for collecting and calculating daily meal headcount for 100+ employees.
+
+## Suggested Technology (choose any one stack)
+Use any technology you prefer. The examples below are acceptable options (pick one and stay consistent):
+
+- **Frontend:** React / Vue / Svelte (or server-rendered templates)
+- **Backend API:** Node.js (Express/Fastify) / Python (FastAPI/Flask)
+- **Auth:** Basic login with roles (Employee / Team Lead / Admin/Logistics)
+- **Storage:** File-based JSON for the first iteration; optional relational DB later if needed (SQLite/PostgreSQL/MySQL)
+- **Packaging/Run:** Run locally; optional deployment to a shared/internal environment (no specific tooling required)
+
+## Core Concept
+- **Default assumption:** everyone is coming for applicable meals unless they explicitly opt out.
+- **Employees** can update their own meal participation.
+- **Team Leads / Admin / Logistics** can add or correct missing entries when needed.
+- Supports multiple **meal types** and special day contexts (office closed, govt holiday, celebrations, etc.).
+
+---
+## Iteration 1 — Daily Meal Opt-In/Out + Basic Visibility
+### Feature requests
+1. **User access**
+   - Users can log in with basic credentials and see the app.
+   - Roles exist at least as: Employee, Team Lead, Admin/Logistics.
+
+2. **Meal participation for employees**
+   - Employees can view “today’s meals” and their current participation status.
+   - Employees can **opt out** of specific meals for the day (default is opt-in).
+   - Employees can update their choice within a defined cutoff window (cutoff rule will be provided later if needed).
+
+3. **Meal types**
+   - The system supports selecting from these meal categories (minimum set):
+     - Lunch, Snacks, Iftar, Event Dinner, Optional Dinner
+
+4. **Admin/Team Lead support for missing entries**
+   - Team Leads / Admin can mark participation on behalf of an employee (only when needed).
+
+5. **Basic headcount view**
+   - Logistics/Admin can see headcount totals per meal type for “today”.
+
+---
