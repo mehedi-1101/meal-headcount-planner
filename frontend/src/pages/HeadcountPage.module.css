@@ -1,0 +1,104 @@
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mealCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.mealCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 24px 20px;
+  text-align: center;
+}
+
+.mealCount {
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.mealLabel {
+  font-size: 13px;
+  color: var(--color-text-2);
+  font-weight: 500;
+}
+
+.summaryCard {
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.summaryItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 20px;
+}
+
+.summaryNum {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.summaryLabel {
+  font-size: 11px;
+  color: var(--color-text-2);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.summaryDivider {
+  width: 1px;
+  background-color: var(--color-border);
+  align-self: stretch;
+}
+
+.teamGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.teamRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.teamName {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.announcementText {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  line-height: 1.8;
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  color: var(--color-text);
+}
