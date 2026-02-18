@@ -1,0 +1,133 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ──────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 24px;
+  height: 56px;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.brandMark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background-color: var(--color-primary);
+  color: #fff;
+  font-weight: 800;
+  font-size: 18px;
+  font-style: italic;
+  line-height: 1;
+  user-select: none;
+}
+
+.brandName {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  color: var(--color-text);
+}
+
+/* ── Nav ─────────────────────────────────────────── */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.navLink {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--color-text-2);
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.navLink:hover {
+  color: var(--color-text);
+  background-color: var(--color-surface-raised);
+}
+
+.navLinkActive {
+  color: var(--color-primary);
+  background-color: var(--color-primary-light);
+  font-weight: 500;
+}
+
+/* ── User area ───────────────────────────────────── */
+.userArea {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.userName {
+  font-size: 13px;
+  color: var(--color-text-2);
+}
+
+.logoutBtn {
+  font-size: 13px;
+  color: var(--color-text-2);
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.logoutBtn:hover {
+  color: var(--color-text);
+  background-color: var(--color-surface-raised);
+}
+
+/* ── Main content ────────────────────────────────── */
+.main {
+  flex: 1;
+  padding: 28px 24px;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 640px) {
+  .header {
+    padding: 12px 16px;
+    height: auto;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .nav {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    gap: 2px;
+  }
+
+  .main {
+    padding: 20px 16px;
+  }
+}
