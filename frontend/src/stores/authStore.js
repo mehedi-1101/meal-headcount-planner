@@ -17,7 +17,7 @@ const useAuthStore = create((set) => ({
   login: async (username, password) => {
     await authApi.login(username, password)
     const user = await authApi.getMe()
-    set({ user })
+    set({ user, loading: false })
   },
 
   logout: async () => {

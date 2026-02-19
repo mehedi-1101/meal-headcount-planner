@@ -227,6 +227,7 @@ input, select, textarea {
   justify-content: space-between;
   margin-bottom: 24px;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .page-title {
@@ -374,4 +375,28 @@ tr:last-child td {
 
 tr:hover td {
   background-color: var(--color-surface-raised);
+}
+
+/* ============================================================
+   Responsive — mobile
+   ============================================================ */
+@media (max-width: 640px) {
+  .toast-container {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+  }
+
+  .toast {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .modal {
+    padding: 20px 16px;
+  }
+
+  .card {
+    padding: 16px;
+  }
 }
