@@ -1,6 +1,14 @@
 import { useEffect } from 'react'
 import useHeadcountStore from '../stores/headcountStore'
 import useUIStore from '../stores/uiStore'
+import useAuthStore from '../stores/authStore'
+
+const HEADCOUNT_ROLES = ['ADMIN', 'LOGISTICS']
+
+function canViewHeadcount() {
+  const user = useAuthStore.getState().user
+  return user != null && HEADCOUNT_ROLES.includes(user.role)
+}
 
 export function useSSE() {
   const fetchHeadcount = useHeadcountStore((s) => s.fetchHeadcount)
@@ -9,6 +17,7 @@ export function useSSE() {
     const source = new EventSource('/api/events/stream', { withCredentials: true })
 
     source.addEventListener('headcount-update', (e) => {
+      if (!canViewHeadcount()) return
       const { date } = JSON.parse(e.data)
       const selectedDate = useUIStore.getState().selectedDate
       if (date === selectedDate) {
@@ -16,10 +25,9 @@ export function useSSE() {
       }
     })
 
-    // special-day-change: consumers re-fetch on their own via SSE trigger
     source.addEventListener('special-day-change', () => {
-      const selectedDate = useUIStore.getState().selectedDate
-      fetchHeadcount(selectedDate)
+      if (!canViewHeadcount()) return
+      fetchHeadcount(useUIStore.getState().selectedDate)
     })
 
     return () => source.close()
