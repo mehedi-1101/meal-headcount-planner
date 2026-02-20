@@ -1,40 +1,33 @@
 ### Meal Headcount Planner (MHP)
 
-Meal Headcount Planner (MHP) is an internal web application designed to replace the existing Excel-based process for collecting and calculating daily meal headcounts for employees.
-
-The goal of the project is to provide a **correct, auditable, and role-aware system** for daily meal planning, while keeping the first iteration intentionally simple and easy to extend.
+Internal web application for collecting and reporting daily meal headcounts. Default opt-in, role-based access, live updates via SSE.
 
 ---
 
-#### Iteration 1 Scope
+#### Features
 
-Iteration 1 focuses on:
+* Default opt-in meal participation with explicit opt-out
+* Role-based access control (Employee, Team Lead, Admin, Logistics)
+* Real-time headcount updates via Server-Sent Events (SSE)
+* Team-based meal management and overrides
+* Special days support (holidays, celebrations, office closures)
+* Work location tracking (Office/WFH)
+* Cutoff time enforcement for meal changes
+* Iftar and company WFH period support
 
-* Daily meal participation (default opt-in, explicit opt-out)
-* Role-based access (Employee, Team Lead, Admin, Logistics)
-* Team-based authorization for Team Leads
-* Aggregated headcount visibility for Logistics/Admin
-* File-based JSON storage
-* Local execution
+---
 
-The following are explicitly **out of scope** for Iteration 1:
+#### Prerequisites
 
-* Notifications
-* Historical reporting
-* Meal cutoff enforcement
-* Holiday / calendar automation
-* External authentication or SSO
+* Node.js 18+ and npm
 
 ---
 
 #### Tech Stack
 
-* **Backend:** Node.js, Express
-* **Authentication:** Session-based
-* **Storage:** File-based JSON
-* **UI (Iteration 1):** Server-rendered views
-
-A separate frontend (e.g. React) may be introduced in later iterations without backend refactoring.
+* **Backend:** Node.js, Express, file-based JSON storage
+* **Frontend:** React + Vite (SPA)
+* **Auth:** Session-based (httpOnly cookies)
 
 ---
 
@@ -42,48 +35,85 @@ A separate frontend (e.g. React) may be introduced in later iterations without b
 
 ```
 mhp/
- ├─ backend/
- ├─ docs/
- └─ README.md
+ ├─ backend/    # Express API server + JSON data
+ ├─ frontend/   # React SPA (Vite)
+ └─ docs/       # Technical design and task specs
 ```
-
-Detailed architecture and design decisions are documented in
-[docs/technical-design.md](docs/technical-design.md).
 
 ---
 
-#### Quick Start
+#### Quick Start (dev)
 
-See [backend/README.md](backend/README.md) for setup instructions.
+**1. Backend**
 
 ```bash
 cd backend
 npm install
-cp .env.example .env
-npm run create-user "Admin" admin admin123 ADMIN
-npm start
+cp .env.example .env          # set SESSION_SECRET
+npm run seed                  # create teams, settings, and seed users
+npm run dev                   # starts on http://localhost:3000
 ```
 
-Open http://localhost:3000
+**2. Frontend** (separate terminal)
+
+```bash
+cd frontend
+npm install
+npm run dev                   # starts on http://localhost:5173
+```
+
+Open http://localhost:5173. The Vite dev server proxies `/api` to the backend.
+
+**Seed credentials** — all seed users share password `pass123`:
+
+| Username | Role |
+|---|---|
+| `admin` | ADMIN |
+| `rachel.b` | LOGISTICS |
+| `sarah.j` | TEAM_LEAD (Mimir) |
+| `michael.c` | EMPLOYEE (Mimir) |
+
+See `backend/scripts/seed.js` for the full list.
 
 ---
 
-#### Status
+#### Adding users
 
-**Iteration 1: Complete**
+```bash
+cd backend
+npm run create-user -- "Full Name" username password ROLE [teamId]
+```
 
-This repository contains:
+**Roles:** `EMPLOYEE`, `TEAM_LEAD`, `ADMIN`, `LOGISTICS`
 
-* ✅ Full backend implementation
-* ✅ Role-based access control (Employee, Team Lead, Admin, Logistics)
-* ✅ Daily meal participation (opt-in/opt-out)
-* ✅ Team-scoped overrides
-* ✅ Aggregated headcount visibility
-* ✅ File-based JSON storage
-* ✅ Server-rendered UI
-* ✅ User provisioning script
-* ✅ Environment configuration
-* ✅ Basic error handling
-* ✅ Test suite (14 tests passing)
+---
 
-See [backend/README.md](backend/README.md) for setup instructions.
+#### Production build
+
+```bash
+cd frontend && npm run build   # outputs to frontend/dist
+# copy dist/ to backend/public/
+cd backend && npm start
+```
+
+Express serves the React build alongside the API.
+
+---
+
+#### Data files
+
+`backend/data/` holds JSON storage. Files committed to git:
+
+- `teams.json` — team definitions
+- `settings.json` — cutoff time, off days, Iftar/WFH periods
+
+Files **not** committed (gitignored — run `npm run seed` on fresh clone):
+
+- `users.json` — accounts + password hashes
+- `meals.json` — participation records
+- `workLocations.json` — location overrides
+- `specialDays.json` — holidays, closures, celebrations
+
+---
+
+Detailed design: [docs/technical-design.md](docs/technical-design.md)
