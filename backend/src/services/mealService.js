@@ -1,5 +1,4 @@
 import { readJson, writeJson } from "../storage/jsonStore.js";
-import { getAllUsers } from "./userService.js";
 
 const MEALS_FILE = "meals.json";
 
@@ -88,45 +87,26 @@ export function optIn(userId, mealType, updatedBy, date) {
 /**
  * Get a single user's participation status for all meals on a date.
  * Returns an object: { LUNCH: "IN", SNACKS: "OUT", ... }
+ *
+ * @param {string} userId
+ * @param {Array<{type: string, default: string}>} availableMeals - meals with their defaults
+ * @param {string} date
  */
-export function getUserMealStatus(userId, mealTypes, date) {
+export function getUserMealStatus(userId, availableMeals, date) {
     if (!date) date = getTodayDate();
 
     const records = getRecordsForDate(date);
     const status = {};
 
-    for (const type of mealTypes) {
+    for (const meal of availableMeals) {
         const record = records.find(
-            (r) => r.userId === userId && r.mealType === type
+            (r) => r.userId === userId && r.mealType === meal.type
         );
-        status[type] = record && record.status === "OUT" ? "OUT" : "IN";
+        // Explicit record wins; otherwise fall back to the meal's default
+        status[meal.type] = record ? record.status : meal.default;
     }
 
     return status;
-}
-
-/**
- * Get aggregated headcount for each meal type on a date.
- * headcount = total users - users who opted out
- * Returns: { LUNCH: 98, SNACKS: 95, ... }
- */
-export function getHeadcount(mealTypes, date) {
-    if (!date) date = getTodayDate();
-
-    const users = getAllUsers();
-    const totalUsers = users.length;
-    const records = getRecordsForDate(date);
-
-    const headcount = {};
-
-    for (const type of mealTypes) {
-        const optedOut = records.filter(
-            (r) => r.mealType === type && r.status === "OUT"
-        ).length;
-        headcount[type] = totalUsers - optedOut;
-    }
-
-    return { date, totalUsers, headcount };
 }
 
 /**

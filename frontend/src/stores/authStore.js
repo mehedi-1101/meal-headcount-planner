@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import * as authApi from '../api/auth'
+import useUIStore from './uiStore'
 
 const useAuthStore = create((set) => ({
   user: null,
@@ -22,6 +23,8 @@ const useAuthStore = create((set) => ({
 
   logout: async () => {
     await authApi.logout()
+    // Reset any UI selections (like date) for the next user
+    useUIStore.getState().setSelectedDate(null)
     set({ user: null })
   },
 }))
