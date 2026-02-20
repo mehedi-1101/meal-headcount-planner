@@ -3,6 +3,9 @@ node_modules/
 .env
 .DS_Store
 dev.md
-# Data files (user data)
-backend/data/*.json
-!backend/data/.gitkeep
+# User data files (contain personal data / password hashes — do not commit)
+backend/data/users.json
+backend/data/meals.json
+backend/data/workLocations.json
+backend/data/specialDays.json
+# Config files (teams.json, settings.json) are tracked — run seed.js on fresh clone

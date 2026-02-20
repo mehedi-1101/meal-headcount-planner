@@ -48,7 +48,6 @@ router.get(
         // If date provided, include meal status and location per member
         if (date) {
             const availableMeals = getAvailableMeals(date);
-            const mealTypes = availableMeals.map((m) => m.type);
 
             const result = members.map((m) => ({
                 id: m.id,
@@ -56,7 +55,7 @@ router.get(
                 role: m.role,
                 teamId: m.teamId,
                 location: getEffectiveLocation(m.id, date),
-                meals: getUserMealStatus(m.id, mealTypes, date),
+                meals: getUserMealStatus(m.id, availableMeals, date),
             }));
             return res.json(result);
         }

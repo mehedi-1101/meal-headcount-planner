@@ -1,0 +1,15 @@
+{
+  "cutoffTime": "22:00",
+  "offDays": [
+    6,
+    0
+  ],
+  "iftarPeriods": [
+    {
+      "label": "Ramadan 2026",
+      "startDate": "2026-02-19",
+      "endDate": "2026-03-19"
+    }
+  ],
+  "companyWfhPeriods": []
+}

@@ -42,6 +42,9 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: "lax",
     },
   })
 );
@@ -68,7 +71,10 @@ app.get("/api/health", (req, res) => {
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 // Catch-all: serve index.html for client-side routing
-app.get("*", (req, res) => {
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
   res.sendFile(path.join(__dirname, "..", "public", "index.html"));
 });
 
