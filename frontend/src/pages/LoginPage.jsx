@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useAuthStore from '../stores/authStore'
+import craftsmenLogo from '../assets/craftsmen.svg'
 import styles from './LoginPage.module.css'
 
 export default function LoginPage() {
@@ -30,8 +31,8 @@ export default function LoginPage() {
     <div className={styles.container}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <span className={styles.brandMark}>C</span>
-          <h1 className={styles.title}>Meal Headcount Planner</h1>
+          <img src={craftsmenLogo} alt="Craftsmen" className={styles.logo} />
+          <h1 className={styles.title}>Craftsmen Canteen</h1>
           <p className={styles.subtitle}>Sign in to continue</p>
         </div>
 

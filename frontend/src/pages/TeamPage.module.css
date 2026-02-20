@@ -5,15 +5,20 @@
   flex-wrap: wrap;
 }
 
+/* ── WFH rows — softer treatment than opacity:0.5 ── */
 .wfhRow td {
-  opacity: 0.5;
+  color: var(--color-text-3);
+}
+
+.wfhRow .memberName {
+  color: var(--color-text-2);
 }
 
 .wfhCell {
-  color: var(--color-text-3);
   font-size: 13px;
 }
 
+/* ── Member info ── */
 .memberName {
   font-weight: 500;
 }
@@ -24,18 +29,27 @@
   margin-top: 1px;
 }
 
+/* ── Toggle badge ── */
 .toggleBadge {
   cursor: pointer;
   border: none;
   font-family: inherit;
-  transition: opacity 0.15s;
+  transition: filter var(--transition), transform var(--transition),
+              box-shadow var(--transition);
 }
 
 .toggleBadge:hover {
-  opacity: 0.75;
+  filter: brightness(0.92);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
-/* Bulk modal */
+.toggleBadge:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* ── Bulk modal ── */
 .bulkSection {
   margin-bottom: 20px;
 }

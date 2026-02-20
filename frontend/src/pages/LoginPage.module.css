@@ -3,8 +3,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-bg);
   padding: 24px;
+  background-color: var(--color-bg);
+  background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 .card {
@@ -14,7 +16,13 @@
   padding: 40px 36px;
   width: 100%;
   max-width: 380px;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
+  animation: cardIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cardIn {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
 
 .header {
@@ -26,25 +34,17 @@
   margin-bottom: 32px;
 }
 
-.brandMark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 12px;
-  background-color: var(--color-primary);
-  color: #fff;
-  font-weight: 800;
-  font-size: 30px;
-  font-style: italic;
-  line-height: 1;
+.logo {
+  width: 60px;
+  height: 60px;
+  filter: drop-shadow(0 2px 8px rgba(232, 101, 10, 0.25));
 }
 
 .title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--color-text);
+  letter-spacing: -0.01em;
 }
 
 .subtitle {

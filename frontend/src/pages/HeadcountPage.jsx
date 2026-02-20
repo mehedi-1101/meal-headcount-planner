@@ -16,7 +16,8 @@ const SPECIAL_DAY_LABELS = {
 }
 
 export default function HeadcountPage() {
-  const { selectedDate, setSelectedDate, addToast } = useUIStore()
+  const { getSelectedDate, setSelectedDate, addToast } = useUIStore()
+  const selectedDate = getSelectedDate()
   const { report, loading, error, fetchHeadcount } = useHeadcountStore()
   const [announcement, setAnnouncement] = useState(null)
   const [showAnnouncement, setShowAnnouncement] = useState(false)

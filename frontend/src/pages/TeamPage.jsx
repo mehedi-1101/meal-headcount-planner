@@ -13,7 +13,8 @@ const MEAL_LABELS = {
 
 export default function TeamPage() {
   const { user } = useAuthStore()
-  const { selectedDate, setSelectedDate, addToast } = useUIStore()
+  const { getSelectedDate, setSelectedDate, addToast } = useUIStore()
+  const selectedDate = getSelectedDate()
   const isAdmin = user?.role === 'ADMIN'
 
   const [teams, setTeams] = useState([])
@@ -212,10 +213,15 @@ function BulkActionModal({ members, mealTypes, selectedDate, onClose, onApplied,
       addToast('Select at least one member and one meal', 'error')
       return
     }
+    
+    const actionText = action === 'OUT' ? 'opt out' : 'opt in'
+    const msg = `${actionText.toUpperCase()} ${selectedUserIds.length} member(s) for ${selectedMealTypes.length} meal(s) from ${startDate} to ${endDate}?`
+    if (!confirm(msg)) return
+    
     setSubmitting(true)
     try {
       await mealsApi.bulkOverride(selectedUserIds, selectedMealTypes, action, startDate, endDate)
-      addToast(`Bulk ${action === 'OUT' ? 'opt-out' : 'opt-in'} applied`, 'success')
+      addToast(`Bulk ${actionText} applied`, 'success')
       onApplied()
     } catch (err) {
       addToast(err.message, 'error')
