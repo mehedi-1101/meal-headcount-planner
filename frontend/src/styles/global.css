@@ -40,7 +40,11 @@
 
   /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.10);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+
+  /* Transitions */
+  --transition: 0.15s ease;
 }
 
 /* ============================================================
@@ -93,7 +97,8 @@ input, select, textarea {
   border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 500;
-  transition: background-color 0.15s, opacity 0.15s;
+  transition: background-color var(--transition), color var(--transition),
+              opacity var(--transition), box-shadow var(--transition);
   white-space: nowrap;
 }
 
@@ -108,6 +113,10 @@ input, select, textarea {
 }
 .btn-primary:hover:not(:disabled) {
   background-color: var(--color-primary-hover);
+  box-shadow: 0 2px 8px rgba(232, 101, 10, 0.3);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .btn-secondary {
@@ -117,6 +126,7 @@ input, select, textarea {
 }
 .btn-secondary:hover:not(:disabled) {
   background-color: var(--color-surface-raised);
+  border-color: var(--color-text-3);
 }
 
 .btn-ghost {
@@ -175,10 +185,11 @@ input, select, textarea {
   background-color: var(--color-surface);
   color: var(--color-text);
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
 .form-input:focus {
   border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(232, 101, 10, 0.12);
 }
 
 .form-select {
@@ -190,6 +201,11 @@ input, select, textarea {
   color: var(--color-text);
   outline: none;
   cursor: pointer;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.form-select:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(232, 101, 10, 0.12);
 }
 
 /* ============================================================
@@ -216,9 +232,25 @@ input, select, textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  height: 240px;
   color: var(--color-text-2);
-  font-size: 15px;
+  font-size: 14px;
+  gap: 10px;
+}
+
+.page-loading::before {
+  content: '';
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .page-header {
@@ -265,8 +297,8 @@ input, select, textarea {
    ============================================================ */
 .empty-state {
   text-align: center;
-  padding: 48px 24px;
-  color: var(--color-text-2);
+  padding: 56px 24px;
+  color: var(--color-text-3);
   font-size: 14px;
 }
 
@@ -281,24 +313,27 @@ input, select, textarea {
   flex-direction: column;
   gap: 8px;
   z-index: 1000;
+  pointer-events: none;
 }
 
 .toast {
   padding: 12px 16px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   font-size: 13px;
-  box-shadow: var(--shadow-md);
-  animation: slideIn 0.2s ease;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   min-width: 220px;
+  pointer-events: auto;
 }
 
 .toast-success { background-color: var(--color-success); color: white; }
 .toast-error   { background-color: var(--color-error);   color: white; }
 .toast-info    { background-color: var(--color-text);    color: white; }
 
-@keyframes slideIn {
-  from { transform: translateX(40px); opacity: 0; }
-  to   { transform: translateX(0);    opacity: 1; }
+@keyframes toastIn {
+  from { transform: translateX(60px) scale(0.95); opacity: 0; }
+  to   { transform: translateX(0)    scale(1);    opacity: 1; }
 }
 
 /* ============================================================
@@ -307,12 +342,20 @@ input, select, textarea {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.35);
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 500;
   padding: 24px;
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .modal {
@@ -323,7 +366,13 @@ input, select, textarea {
   max-width: 480px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
+  animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalIn {
+  from { transform: translateY(12px) scale(0.98); opacity: 0; }
+  to   { transform: translateY(0)    scale(1);    opacity: 1; }
 }
 
 .modal-header {
@@ -361,10 +410,11 @@ th {
   color: var(--color-text-2);
   border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
+  background-color: var(--color-surface);
 }
 
 td {
-  padding: 12px;
+  padding: 11px 12px;
   border-bottom: 1px solid var(--color-border);
   vertical-align: middle;
 }
@@ -373,7 +423,11 @@ tr:last-child td {
   border-bottom: none;
 }
 
-tr:hover td {
+tbody tr {
+  transition: background-color var(--transition);
+}
+
+tbody tr:hover td {
   background-color: var(--color-surface-raised);
 }
 

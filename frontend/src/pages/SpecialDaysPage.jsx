@@ -5,21 +5,23 @@ import styles from './SpecialDaysPage.module.css'
 
 const TYPE_LABELS = {
   OFFICE_CLOSED: 'Office Closed',
-  GOVT_HOLIDAY:  'Government Holiday',
-  CELEBRATION:   'Celebration',
+  GOVT_HOLIDAY: 'Government Holiday',
+  CELEBRATION: 'Celebration',
 }
 
 const TYPE_BADGE = {
   OFFICE_CLOSED: 'badge-out',
-  GOVT_HOLIDAY:  'badge-wfh',
-  CELEBRATION:   'badge-office',
+  GOVT_HOLIDAY: 'badge-wfh',
+  CELEBRATION: 'badge-office',
 }
 
 const EXTRA_MEALS = ['EVENT_DINNER', 'OPTIONAL_DINNER']
 const MEAL_LABELS = { EVENT_DINNER: 'Event Dinner', OPTIONAL_DINNER: 'Optional Dinner' }
 
 function currentMonth() {
-  return new Date().toISOString().slice(0, 7)
+  const today = new Date()
+  const tzOffset = today.getTimezoneOffset() * 60000
+  return new Date(today.getTime() - tzOffset).toISOString().slice(0, 7)
 }
 
 export default function SpecialDaysPage() {
@@ -140,9 +142,9 @@ export default function SpecialDaysPage() {
 
 function SpecialDayModal({ day, onClose, onSaved, addToast }) {
   const isEdit = !!day
-  const [date, setDate]   = useState(day?.date || '')
-  const [type, setType]   = useState(day?.type || 'GOVT_HOLIDAY')
-  const [note, setNote]   = useState(day?.note || '')
+  const [date, setDate] = useState(day?.date || '')
+  const [type, setType] = useState(day?.type || 'GOVT_HOLIDAY')
+  const [note, setNote] = useState(day?.note || '')
   const [meals, setMeals] = useState(day?.meals || [])
   const [submitting, setSubmitting] = useState(false)
 
