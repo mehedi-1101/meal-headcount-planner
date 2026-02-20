@@ -1,0 +1,26 @@
+[
+  {
+    "id": "mimir",
+    "name": "Mimir"
+  },
+  {
+    "id": "saga",
+    "name": "Saga"
+  },
+  {
+    "id": "vimond",
+    "name": "Vimond"
+  },
+  {
+    "id": "admin-account",
+    "name": "Admin & Account"
+  },
+  {
+    "id": "marketing",
+    "name": "Marketing"
+  },
+  {
+    "id": "logistics",
+    "name": "Logistics"
+  }
+]

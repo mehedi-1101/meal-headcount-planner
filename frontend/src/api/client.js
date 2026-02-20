@@ -14,6 +14,14 @@ async function request(path, options = {}) {
     const data = await res.json().catch(() => ({}))
     const err = new Error(data.error || `Request failed: ${res.status}`)
     err.status = res.status
+    
+    // Global 401 handler - redirect to login and clear auth state
+    if (res.status === 401) {
+      const { default: useAuthStore } = await import('../stores/authStore')
+      useAuthStore.getState().logout()
+      window.location.href = '/login'
+    }
+    
     throw err
   }
 

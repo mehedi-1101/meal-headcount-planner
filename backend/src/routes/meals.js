@@ -10,7 +10,11 @@ import { broadcast } from "../services/sseService.js";
 
 const router = express.Router();
 
-const mealDateExtractor = (req) => req.body.date || new Date().toISOString().split("T")[0];
+const mealDateExtractor = (req) => {
+    const date = req.body.date;
+    // Handle null, undefined, empty string - all default to today
+    return (date && date.trim()) ? date : new Date().toISOString().split("T")[0];
+};
 
 /**
  * GET /api/meals?date=YYYY-MM-DD
@@ -24,8 +28,7 @@ router.get("/", requireAuth, (req, res) => {
 
     const user = req.session.user;
     const availableMeals = getAvailableMeals(date);
-    const mealTypes = availableMeals.map((m) => m.type);
-    const userStatus = getUserMealStatus(user.id, mealTypes, date);
+    const userStatus = getUserMealStatus(user.id, availableMeals, date);
 
     const meals = availableMeals.map((m) => ({
         type: m.type,
@@ -51,8 +54,14 @@ router.post("/:mealType/opt-out", requireAuth, enforceCutoff(mealDateExtractor),
 
     const targetDate = date || new Date().toISOString().split("T")[0];
     const available = getAvailableMeals(targetDate);
+    
     if (available.length === 0) {
         return res.status(400).json({ error: "No meals available on this date (holiday or office closed)" });
+    }
+    
+    // Check if this specific meal is available
+    if (!available.some(m => m.type === mealType)) {
+        return res.status(400).json({ error: `${mealType} is not available on ${targetDate}` });
     }
 
     optOut(user.id, mealType, user.id, date);
@@ -75,8 +84,14 @@ router.post("/:mealType/opt-in", requireAuth, enforceCutoff(mealDateExtractor), 
 
     const targetDate = date || new Date().toISOString().split("T")[0];
     const available = getAvailableMeals(targetDate);
+    
     if (available.length === 0) {
         return res.status(400).json({ error: "No meals available on this date (holiday or office closed)" });
+    }
+    
+    // Check if this specific meal is available
+    if (!available.some(m => m.type === mealType)) {
+        return res.status(400).json({ error: `${mealType} is not available on ${targetDate}` });
     }
 
     optIn(user.id, mealType, user.id, date);
@@ -161,6 +176,10 @@ router.post(
 
         if (!["IN", "OUT"].includes(status)) {
             return res.status(400).json({ error: "status must be IN or OUT" });
+        }
+        
+        if (startDate > endDate) {
+            return res.status(400).json({ error: "startDate must be before or equal to endDate" });
         }
 
         for (const mt of mealTypes) {
