@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import useAuthStore from '../stores/authStore'
 import useUIStore from '../stores/uiStore'
 import { useSSE } from '../hooks/useSSE'
+import craftsmenLogo from '../assets/craftsmen.svg'
 import styles from './Layout.module.css'
 
 const ROLES = {
@@ -33,7 +34,12 @@ export default function Layout() {
   const { user, logout } = useAuthStore()
   const toasts = useUIStore((s) => s.toasts)
   const navigate = useNavigate()
-  useSSE()
+  
+  // Only connect SSE for roles that need live updates
+  const needsSSE = user?.role === 'ADMIN' || user?.role === 'LOGISTICS'
+  if (needsSSE) {
+    useSSE()
+  }
 
   async function handleLogout() {
     await logout()
@@ -44,8 +50,8 @@ export default function Layout() {
     <div className={styles.shell}>
       <header className={styles.header}>
         <div className={styles.brand}>
-          <span className={styles.brandMark}>C</span>
-          <span className={styles.brandName}>MHP</span>
+          <img src={craftsmenLogo} alt="Craftsmen" className={styles.brandLogo} />
+          <span className={styles.brandName}>Craftsmen Canteen</span>
         </div>
 
         <nav className={styles.nav}>
