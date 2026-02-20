@@ -8,7 +8,11 @@ export function addClient(res) {
 export function broadcast(event, data) {
     const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
     for (const client of clients) {
-        client.write(payload);
+        try {
+            client.write(payload);
+        } catch {
+            clients.delete(client);
+        }
     }
 }
 
@@ -19,6 +23,10 @@ export function getClientCount() {
 // Keepalive every 30 seconds
 setInterval(() => {
     for (const client of clients) {
-        client.write(": keepalive\n\n");
+        try {
+            client.write(": keepalive\n\n");
+        } catch {
+            clients.delete(client);
+        }
     }
 }, 30000);
