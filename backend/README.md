@@ -1,120 +1,87 @@
-# MHP Backend - Iteration 1
+# MHP Backend
 
-Meal Headcount Planner backend service.
-
-## Quick Start (5 minutes)
-
-```bash
-cd backend
-npm install
-cp .env.example .env
-npm run create-user "Admin" admin admin123 ADMIN
-npm start
-```
-
-Open http://localhost:3000 and login with `admin` / `admin123`
-
-## Running Tests
-
-```bash
-npm test
-```
-
-**Test Coverage:** 14 tests passing
-- Unit tests: Headcount calculation, opt-in/out logic
-- Integration tests: Auth, authorization, role-based overrides
-
-## Prerequisites
-
-- Node.js 18+
-- npm
+Express API server for Meal Headcount Planner.
 
 ## Setup
 
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-2. **Configure environment:**
-   ```bash
-   cp .env.example .env
-   ```
-
-3. **Create admin user:**
-   ```bash
-   npm run create-user "Admin" admin yourpassword ADMIN
-   ```
-
-4. **Start server:**
-   ```bash
-   npm start          # Production
-   npm run dev        # Development (auto-reload)
-   ```
-
-5. **Access:** http://localhost:3000
-
-## Creating Users
-
 ```bash
-npm run create-user <name> <username> <password> <role> [teamId]
+npm install
+cp .env.example .env    # set SESSION_SECRET
+npm run seed            # seed teams, settings, and dev users (password: pass123)
+npm run dev             # starts on http://localhost:3000
 ```
 
-**Roles:** EMPLOYEE, TEAM_LEAD, ADMIN, LOGISTICS
+## Scripts
 
-**Examples:**
+| Command | Description |
+|---|---|
+| `npm run dev` | Start with auto-reload (nodemon) |
+| `npm start` | Start in production mode |
+| `npm run seed` | Seed teams, settings, and dev users |
+| `npm run seed -- --force` | Overwrite existing data with seed |
+| `npm run create-user` | Add a single user (see below) |
+| `npm test` | Run test suite |
+
+## Adding users
+
 ```bash
-npm run create-user "Alice" alice pass123 EMPLOYEE team-a
-npm run create-user "Bob Lead" bob pass123 TEAM_LEAD team-a
-npm run create-user "Logistics" logistics pass123 LOGISTICS
+npm run create-user -- "Full Name" username password ROLE [teamId]
 ```
 
-## Environment Variables
+**Roles:** `EMPLOYEE`, `TEAM_LEAD`, `ADMIN`, `LOGISTICS`
+
+**Team IDs:** `mimir`, `saga`, `vimond`, `admin-account`, `marketing`, `logistics`
+
+## Environment variables
 
 | Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | Server port | 3000 |
-| `SESSION_SECRET` | Session encryption key | (required) |
-| `NODE_ENV` | Environment | development |
+|---|---|---|
+| `PORT` | Server port | `3000` |
+| `SESSION_SECRET` | Session encryption key | required |
+| `NODE_ENV` | Environment | `development` |
 
-## How It Works
-
-- **Default opt-in:** All users are IN for all meals by default
-- **Explicit opt-out:** Users must opt out if not eating
-- **Absence = IN:** No record means opted in
-- **Audit trail:** All changes tracked with updatedBy/updatedAt
-
-## Roles & Permissions
-
-| Role | Permissions |
-|------|-------------|
-| **EMPLOYEE** | View and update own meal status |
-| **TEAM_LEAD** | Override meals for own team members |
-| **ADMIN** | Override meals for any user |
-| **LOGISTICS** | View aggregated headcount only |
-
-## Project Structure
+## Project structure
 
 ```
 backend/
-├── data/              # JSON storage
-├── scripts/           # CLI utilities
+├── data/           # JSON storage (users/meals gitignored; teams/settings tracked)
+├── scripts/        # seed.js, createUser.js
 ├── src/
-│   ├── constants/     # Roles, meal types
-│   ├── middleware/    # Auth, error handling
-│   ├── routes/        # API endpoints
-│   ├── services/      # Business logic
-│   ├── storage/       # JSON operations
-│   ├── views/         # EJS templates
-│   └── app.js         # Express setup
-├── tests/             # Test suite
-└── package.json
+│   ├── constants/  # Roles, meal types, locations
+│   ├── middleware/ # Auth, cutoff enforcement, error handler
+│   ├── routes/     # API endpoints (/api/*)
+│   ├── services/   # Business logic
+│   ├── storage/    # jsonStore (read/write helpers)
+│   └── app.js
+└── tests/
 ```
+
+## API Endpoints
+
+* `POST /api/auth/login` — Authenticate user
+* `POST /api/auth/logout` — End session
+* `GET /api/auth/me` — Get current user
+* `GET /api/meals` — Get user's meal status for a date
+* `POST /api/meals/:mealType/opt-out` — Opt out of a meal
+* `POST /api/meals/:mealType/opt-in` — Opt in to a meal
+* `GET /api/headcount` — Get aggregated headcount report
+* `GET /api/team/members` — Get team members (with optional meal status)
+* `GET /api/special-days` — List special days
+* `POST /api/special-days` — Create special day
+* `GET /api/settings` — Get app settings
+* `PUT /api/settings` — Update settings (ADMIN only)
+* `GET /api/events/stream` — SSE live updates
 
 ## Troubleshooting
 
-**Port in use:** Change `PORT` in `.env`
+**Session secret warning:**
+```bash
+# Set SESSION_SECRET in .env to a random string
+SESSION_SECRET=your-secret-key-here
+```
 
-**Session warning:** Set `SESSION_SECRET` in `.env`
-
-**No users:** Create at least one user with the script
+**No users after fresh clone:**
+```bash
+# Run seed script to create default users
+npm run seed
+```
