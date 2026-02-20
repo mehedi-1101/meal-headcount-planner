@@ -31,7 +31,8 @@ function isPastCutoff(selectedDate, cutoffTime) {
 
 export default function DashboardPage() {
   const { user } = useAuthStore()
-  const { selectedDate, setSelectedDate, addToast } = useUIStore()
+  const { getSelectedDate, setSelectedDate, addToast } = useUIStore()
+  const selectedDate = getSelectedDate()
 
   const [meals, setMeals] = useState([])
   const [location, setLocation] = useState('OFFICE')
@@ -54,13 +55,12 @@ export default function DashboardPage() {
       .catch(() => {})
   }, [user?.teamId])
 
-  // Fetch settings once for ADMIN (cutoff display)
+  // Fetch settings once to get cutoff time for display
   useEffect(() => {
-    if (user?.role !== 'ADMIN') return
     settingsApi.getSettings()
       .then((s) => setCutoffTime(s.cutoffTime))
       .catch(() => {})
-  }, [user?.role])
+  }, [])
 
   const load = useCallback(async () => {
     setLoading(true)

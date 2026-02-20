@@ -43,17 +43,23 @@ export function getHeadcountReport(date) {
 
     for (const user of users) {
         const loc = getEffectiveLocation(user.id, date);
-        const teamId = user.teamId || "unassigned";
 
-        if (!teamStatsMap.has(teamId)) {
-            teamStatsMap.set(teamId, { teamId, name: teamId, officeCount: 0, wfhCount: 0 });
+        // Count in office set regardless of team assignment (affects meal headcount)
+        if (loc !== LOCATIONS.WFH) {
+            officeUserIds.add(user.id);
         }
-        const team = teamStatsMap.get(teamId);
+
+        // Only include in byTeam breakdown if user belongs to a known team
+        if (!user.teamId) continue;
+
+        if (!teamStatsMap.has(user.teamId)) {
+            teamStatsMap.set(user.teamId, { teamId: user.teamId, name: user.teamId, officeCount: 0, wfhCount: 0 });
+        }
+        const team = teamStatsMap.get(user.teamId);
 
         if (loc === LOCATIONS.WFH) {
             team.wfhCount++;
         } else {
-            officeUserIds.add(user.id);
             team.officeCount++;
         }
     }
