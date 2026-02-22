@@ -1,0 +1,36 @@
+## Iteration 3 — Scheduling + Events + Operational Readiness
+### Feature requests
+1. **Future planning**
+   - Employees can set meal participation for a future date (within a limited forward window).
+   - Admin/Logistics can view headcount forecasts for upcoming dates.
+
+2. **Event meals**
+   - Admin/Logistics can create “Event Meals” (e.g., Event Dinner) with:
+     - Date
+     - Meal type
+     - Optional note (why/what event)
+   - Employees can opt in/out specifically for event meals if applicable.
+
+3. **Auditability and accountability**
+   - Admin/Logistics can see “who changed what and when” for participation entries.
+   - Team Leads/Admin edits are identifiable (so corrections are traceable).
+
+4. **Operational dashboards**
+   - Logistics/Admin dashboard includes:
+     - Daily headcount snapshot
+     - Upcoming forecast snapshot
+     - Special day indicators (holiday/office closed/celebration)
+
+5. **Policy refinements**
+   - Cutoff rules, role permissions, and any restrictions can be refined based on feedback from Iteration 1–2 usage.
+
+6. **Monthly WFH usage summary (soft limit)**
+   - The system shows WFH days used per employee for the current month.
+   - The standard allowance is 5 WFH days per month, but entries beyond the allowance are still accepted.
+
+7. **Over-limit indicators in reports**
+   - Team Lead and Admin/Logistics views clearly highlight employees who exceed the monthly allowance.
+   - Reports include rollups such as: number of employees over limit and total extra WFH days.
+
+8. **Over-limit filters**
+   - Team Lead and Admin/Logistics views can filter to show only employees who are over the monthly allowance.
