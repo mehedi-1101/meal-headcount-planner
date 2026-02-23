@@ -151,7 +151,7 @@ router.post(
  */
 router.get("/monthly-usage", requireAuth, (req, res) => {
     const user = req.session.user;
-    const month = req.query.month || new Date().toISOString().slice(0, 7);
+    const month = req.query.month || getTodayDate().slice(0, 7);
     const { monthlyWfhAllowance } = getSettings();
 
     let userList;
