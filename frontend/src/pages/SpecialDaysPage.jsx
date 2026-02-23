@@ -211,8 +211,11 @@ function SpecialDayModal({ day, onClose, onSaved, addToast }) {
 
           {type === 'CELEBRATION' && (
             <div className="form-group">
-              <label className="form-label">Extra meals</label>
-              <div style={{ display: 'flex', gap: 20, marginTop: 4 }}>
+              <label className="form-label">Event Meals</label>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '2px 0 8px' }}>
+                Select which meals to enable for this event. These will appear on employee and headcount views for this date.
+              </p>
+              <div style={{ display: 'flex', gap: 20 }}>
                 {EXTRA_MEALS.map((meal) => (
                   <label key={meal} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
                     <input type="checkbox" checked={meals.includes(meal)} onChange={() => toggleMeal(meal)} />
