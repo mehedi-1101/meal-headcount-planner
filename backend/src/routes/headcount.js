@@ -68,9 +68,9 @@ router.get(
                 });
             }
 
-            // Advance by one day
+            // Advance by one day (string arithmetic to avoid timezone issues)
             const [y, m, d] = current.split("-").map(Number);
-            const next = new Date(y, m - 1, d + 1);
+            const next = new Date(Date.UTC(y, m - 1, d + 1));
             current = next.toISOString().split("T")[0];
         }
 
