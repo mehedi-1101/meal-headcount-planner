@@ -63,8 +63,9 @@ export default function TeamPage() {
     teamApi.getTeams().then(setTeams).catch(() => {})
   }, [isAdmin])
 
+  const selectedMonth = selectedDate.slice(0, 7)
   const loadWfhUsage = useCallback(() => {
-    workLocationApi.getMonthlyUsage()
+    workLocationApi.getMonthlyUsage(selectedMonth)
       .then((data) => {
         const map = {}
         data.users.forEach((u) => {
@@ -73,7 +74,7 @@ export default function TeamPage() {
         setWfhUsageMap(map)
       })
       .catch(() => {})
-  }, [])
+  }, [selectedMonth])
 
   useEffect(() => { loadWfhUsage() }, [loadWfhUsage])
 

@@ -74,15 +74,16 @@ export default function DashboardPage() {
       .catch(() => {})
   }, [])
 
-  // Fetch WFH usage for current month (shown below location card)
+  // Fetch WFH usage for the month of the selected date
+  const selectedMonth = selectedDate.slice(0, 7)
   useEffect(() => {
-    workLocationApi.getMonthlyUsage()
+    workLocationApi.getMonthlyUsage(selectedMonth)
       .then((data) => {
         const me = data.users.find((u) => u.userId === user?.id)
         if (me) setWfhUsage({ wfhDays: me.wfhDays, allowance: data.allowance, overLimit: me.overLimit })
       })
       .catch(() => {})
-  }, [user?.id])
+  }, [user?.id, selectedMonth])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -108,7 +109,7 @@ export default function DashboardPage() {
       await workLocationApi.setLocation(selectedDate, newLoc)
       setLocation(newLoc)
       // Refresh WFH usage after a location change
-      workLocationApi.getMonthlyUsage()
+      workLocationApi.getMonthlyUsage(selectedMonth)
         .then((data) => {
           const me = data.users.find((u) => u.userId === user?.id)
           if (me) setWfhUsage({ wfhDays: me.wfhDays, allowance: data.allowance, overLimit: me.overLimit })
