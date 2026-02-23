@@ -20,7 +20,7 @@ const SPECIAL_DAY_LABELS = {
 
 function addDays(dateStr, n) {
   const [y, m, d] = dateStr.split('-').map(Number)
-  return new Date(y, m - 1, d + n).toISOString().split('T')[0]
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().split('T')[0]
 }
 
 function formatShortDate(dateStr) {
