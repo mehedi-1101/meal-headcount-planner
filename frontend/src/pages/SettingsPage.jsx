@@ -11,12 +11,14 @@ function emptyWfhPeriod(){ return { reason: '', startDate: '', endDate: '' } }
 export default function SettingsPage() {
   const { addToast } = useUIStore()
 
-  const [cutoffTime,       setCutoffTime]       = useState('22:00')
-  const [offDays,          setOffDays]          = useState([0, 6])
-  const [iftarPeriods,     setIftarPeriods]     = useState([])
-  const [companyWfhPeriods,setCompanyWfhPeriods]= useState([])
-  const [loading,          setLoading]          = useState(true)
-  const [submitting,       setSubmitting]       = useState(false)
+  const [cutoffTime,            setCutoffTime]            = useState('22:00')
+  const [offDays,               setOffDays]               = useState([0, 6])
+  const [iftarPeriods,          setIftarPeriods]          = useState([])
+  const [companyWfhPeriods,     setCompanyWfhPeriods]     = useState([])
+  const [maxForwardPlanningDays,setMaxForwardPlanningDays]= useState(14)
+  const [monthlyWfhAllowance,   setMonthlyWfhAllowance]   = useState(5)
+  const [loading,               setLoading]               = useState(true)
+  const [submitting,            setSubmitting]             = useState(false)
 
   useEffect(() => {
     settingsApi.getSettings()
@@ -25,6 +27,8 @@ export default function SettingsPage() {
         setOffDays(s.offDays ?? [0, 6])
         setIftarPeriods(s.iftarPeriods ?? [])
         setCompanyWfhPeriods(s.companyWfhPeriods ?? [])
+        setMaxForwardPlanningDays(s.maxForwardPlanningDays ?? 14)
+        setMonthlyWfhAllowance(s.monthlyWfhAllowance ?? 5)
       })
       .catch((err) => addToast(err.message, 'error'))
       .finally(() => setLoading(false))
@@ -59,6 +63,8 @@ export default function SettingsPage() {
         offDays,
         iftarPeriods,
         companyWfhPeriods,
+        maxForwardPlanningDays: Number(maxForwardPlanningDays),
+        monthlyWfhAllowance: Number(monthlyWfhAllowance),
       })
       addToast('Settings saved', 'success')
     } catch (err) {
@@ -93,6 +99,46 @@ export default function SettingsPage() {
               onChange={(e) => setCutoffTime(e.target.value)}
               required
             />
+          </div>
+        </section>
+
+        {/* ── Planning policy ── */}
+        <section className={`card ${styles.section}`}>
+          <h2 className={styles.sectionTitle}>Planning Policy</h2>
+          <p className={styles.sectionHint}>
+            Controls how far ahead employees can plan and the monthly WFH allowance.
+          </p>
+          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+            <div className="form-group" style={{ maxWidth: 220 }}>
+              <label className="form-label">Forward planning window (days)</label>
+              <input
+                type="number"
+                className="form-input"
+                min={1}
+                max={60}
+                value={maxForwardPlanningDays}
+                onChange={(e) => setMaxForwardPlanningDays(e.target.value)}
+                required
+              />
+              <p className={styles.sectionHint} style={{ marginTop: 4 }}>
+                Employees can plan meals up to this many days ahead.
+              </p>
+            </div>
+            <div className="form-group" style={{ maxWidth: 220 }}>
+              <label className="form-label">Monthly WFH allowance (days)</label>
+              <input
+                type="number"
+                className="form-input"
+                min={0}
+                max={31}
+                value={monthlyWfhAllowance}
+                onChange={(e) => setMonthlyWfhAllowance(e.target.value)}
+                required
+              />
+              <p className={styles.sectionHint} style={{ marginTop: 4 }}>
+                Employees over this limit are flagged in reports. Not a hard block.
+              </p>
+            </div>
           </div>
         </section>
 
