@@ -9,6 +9,8 @@ import {
 } from "../services/workLocationService.js";
 import { enforceCutoff } from "../middleware/cutoff.js";
 import { broadcast } from "../services/sseService.js";
+import { logAction } from "../services/auditService.js";
+import { getSettings } from "../services/settingsService.js";
 
 const router = express.Router();
 
@@ -24,6 +26,14 @@ function getTodayDate() {
 
 function isPastDate(date) {
     return date < getTodayDate();
+}
+
+function isDateBeyondForwardWindow(dateStr, maxDays) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(dateStr + "T00:00:00");
+    const diffDays = Math.round((target - today) / (1000 * 60 * 60 * 24));
+    return diffDays > maxDays;
 }
 
 /**
@@ -64,8 +74,22 @@ router.post("/", requireAuth, enforceCutoff((req) => req.body.date), (req, res) 
         return res.status(400).json({ error: `Invalid location. Must be one of: ${validLocations.join(", ")}` });
     }
 
+    if (user.role === ROLES.EMPLOYEE) {
+        const { maxForwardPlanningDays } = getSettings();
+        if (isDateBeyondForwardWindow(date, maxForwardPlanningDays)) {
+            return res.status(400).json({ error: "Date is beyond the allowed forward planning window." });
+        }
+    }
+
     setLocation(user.id, date, location, user.id);
     broadcast("headcount-update", { date });
+
+    try {
+        logAction({ actorId: user.id, actorName: user.name, targetUserId: user.id, actionType: "LOCATION_CHANGE", details: { date, location } });
+    } catch (e) {
+        console.error("Audit write failed:", e);
+    }
+
     res.json({ message: `Location set to ${location} for ${date}` });
 });
 
@@ -108,6 +132,13 @@ router.post(
 
         setLocation(targetUserId, date, location, currentUser.id);
         broadcast("headcount-update", { date });
+
+        try {
+            logAction({ actorId: currentUser.id, actorName: currentUser.name, targetUserId, actionType: "LOCATION_OVERRIDE", details: { date, location } });
+        } catch (e) {
+            console.error("Audit write failed:", e);
+        }
+
         res.json({ message: `Set ${targetUser.name}'s location to ${location} for ${date}` });
     }
 );

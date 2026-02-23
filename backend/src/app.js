@@ -13,6 +13,7 @@ import teamRoutes from "./routes/team.js";
 import workLocationRoutes from "./routes/workLocation.js";
 import eventsRoutes from "./routes/events.js";
 import announcementRoutes from "./routes/announcement.js";
+import auditRoutes from "./routes/audit.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 dotenv.config();
@@ -60,6 +61,7 @@ app.use("/api/team", teamRoutes);
 app.use("/api/work-location", workLocationRoutes);
 app.use("/api/events", eventsRoutes);
 app.use("/api/announcement", announcementRoutes);
+app.use("/api/audit", auditRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
