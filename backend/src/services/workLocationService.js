@@ -61,3 +61,26 @@ export function setLocation(userId, date, location, updatedBy) {
 export function getLocationRecord(userId, date) {
     return findRecord(userId, date);
 }
+
+/**
+ * Count WFH days per user for a calendar month.
+ *
+ * @param {Array} userList  - array of user objects { id, name, teamId }
+ * @param {string} month    - "YYYY-MM"
+ * @param {number} allowance - monthlyWfhAllowance from settings
+ * @returns {Array} [{ userId, name, teamId, wfhDays, overLimit, extraDays? }]
+ */
+export function getMonthlyWfhUsage(userList, month, allowance) {
+    const all = getAllRecords();
+
+    return userList.map((user) => {
+        const wfhDays = all.filter(
+            (r) => r.userId === user.id && r.location === LOCATIONS.WFH && r.date.startsWith(month)
+        ).length;
+
+        const overLimit = wfhDays > allowance;
+        const entry = { userId: user.id, name: user.name, teamId: user.teamId, wfhDays, overLimit };
+        if (overLimit) entry.extraDays = wfhDays - allowance;
+        return entry;
+    });
+}

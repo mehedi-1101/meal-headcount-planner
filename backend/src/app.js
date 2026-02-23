@@ -14,6 +14,8 @@ import workLocationRoutes from "./routes/workLocation.js";
 import eventsRoutes from "./routes/events.js";
 import announcementRoutes from "./routes/announcement.js";
 import auditRoutes from "./routes/audit.js";
+import reportsRoutes from "./routes/reports.js";
+import dashboardRoutes from "./routes/dashboard.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 dotenv.config();
@@ -62,6 +64,8 @@ app.use("/api/work-location", workLocationRoutes);
 app.use("/api/events", eventsRoutes);
 app.use("/api/announcement", announcementRoutes);
 app.use("/api/audit", auditRoutes);
+app.use("/api/reports", reportsRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
