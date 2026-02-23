@@ -2,10 +2,11 @@ import express from "express";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { ROLES } from "../constants/roles.js";
 import { LOCATIONS } from "../constants/locations.js";
-import { getUserById } from "../services/userService.js";
+import { getUserById, getAllUsers, getTeamMembers } from "../services/userService.js";
 import {
     getEffectiveLocation,
     setLocation,
+    getMonthlyWfhUsage,
 } from "../services/workLocationService.js";
 import { enforceCutoff } from "../middleware/cutoff.js";
 import { broadcast } from "../services/sseService.js";
@@ -142,5 +143,28 @@ router.post(
         res.json({ message: `Set ${targetUser.name}'s location to ${location} for ${date}` });
     }
 );
+
+/**
+ * GET /api/work-location/monthly-usage?month=YYYY-MM
+ * Returns WFH day counts per user for the given month, scoped by role.
+ * Employee: own record only. TL: own team. Admin/Logistics: all.
+ */
+router.get("/monthly-usage", requireAuth, (req, res) => {
+    const user = req.session.user;
+    const month = req.query.month || new Date().toISOString().slice(0, 7);
+    const { monthlyWfhAllowance } = getSettings();
+
+    let userList;
+    if (user.role === ROLES.EMPLOYEE) {
+        userList = [getUserById(user.id)];
+    } else if (user.role === ROLES.TEAM_LEAD) {
+        userList = getTeamMembers(user.teamId);
+    } else {
+        userList = getAllUsers();
+    }
+
+    const users = getMonthlyWfhUsage(userList, month, monthlyWfhAllowance);
+    res.json({ month, allowance: monthlyWfhAllowance, users });
+});
 
 export default router;
