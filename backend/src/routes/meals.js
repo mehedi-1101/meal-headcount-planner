@@ -7,6 +7,8 @@ import { optOut, optIn, getUserMealStatus } from "../services/mealService.js";
 import { getAvailableMeals } from "../services/availabilityService.js";
 import { enforceCutoff } from "../middleware/cutoff.js";
 import { broadcast } from "../services/sseService.js";
+import { logAction } from "../services/auditService.js";
+import { getSettings } from "../services/settingsService.js";
 
 const router = express.Router();
 
@@ -15,6 +17,18 @@ const mealDateExtractor = (req) => {
     // Handle null, undefined, empty string - all default to today
     return (date && date.trim()) ? date : new Date().toISOString().split("T")[0];
 };
+
+function todayString() {
+    return new Date().toISOString().split("T")[0];
+}
+
+function isDateBeyondForwardWindow(dateStr, maxDays) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(dateStr + "T00:00:00");
+    const diffDays = Math.round((target - today) / (1000 * 60 * 60 * 24));
+    return diffDays > maxDays;
+}
 
 /**
  * GET /api/meals?date=YYYY-MM-DD
@@ -47,25 +61,36 @@ router.post("/:mealType/opt-out", requireAuth, enforceCutoff(mealDateExtractor),
     const { mealType } = req.params;
     const user = req.session.user;
     const date = req.body.date;
+    const targetDate = date || todayString();
 
     if (!MEAL_TYPES.includes(mealType)) {
         return res.status(400).json({ error: `Invalid meal type: ${mealType}` });
     }
 
-    const targetDate = date || new Date().toISOString().split("T")[0];
+    if (user.role === ROLES.EMPLOYEE) {
+        const { maxForwardPlanningDays } = getSettings();
+        if (isDateBeyondForwardWindow(targetDate, maxForwardPlanningDays)) {
+            return res.status(400).json({ error: "Date is beyond the allowed forward planning window." });
+        }
+    }
+
     const available = getAvailableMeals(targetDate);
-    
     if (available.length === 0) {
         return res.status(400).json({ error: "No meals available on this date (holiday or office closed)" });
     }
-    
-    // Check if this specific meal is available
     if (!available.some(m => m.type === mealType)) {
         return res.status(400).json({ error: `${mealType} is not available on ${targetDate}` });
     }
 
     optOut(user.id, mealType, user.id, date);
     broadcast("headcount-update", { date: targetDate });
+
+    try {
+        logAction({ actorId: user.id, actorName: user.name, targetUserId: user.id, actionType: "MEAL_OPT_OUT", details: { date: targetDate, mealType } });
+    } catch (e) {
+        console.error("Audit write failed:", e);
+    }
+
     res.json({ message: `Opted out of ${mealType}` });
 });
 
@@ -77,25 +102,36 @@ router.post("/:mealType/opt-in", requireAuth, enforceCutoff(mealDateExtractor), 
     const { mealType } = req.params;
     const user = req.session.user;
     const date = req.body.date;
+    const targetDate = date || todayString();
 
     if (!MEAL_TYPES.includes(mealType)) {
         return res.status(400).json({ error: `Invalid meal type: ${mealType}` });
     }
 
-    const targetDate = date || new Date().toISOString().split("T")[0];
+    if (user.role === ROLES.EMPLOYEE) {
+        const { maxForwardPlanningDays } = getSettings();
+        if (isDateBeyondForwardWindow(targetDate, maxForwardPlanningDays)) {
+            return res.status(400).json({ error: "Date is beyond the allowed forward planning window." });
+        }
+    }
+
     const available = getAvailableMeals(targetDate);
-    
     if (available.length === 0) {
         return res.status(400).json({ error: "No meals available on this date (holiday or office closed)" });
     }
-    
-    // Check if this specific meal is available
     if (!available.some(m => m.type === mealType)) {
         return res.status(400).json({ error: `${mealType} is not available on ${targetDate}` });
     }
 
     optIn(user.id, mealType, user.id, date);
     broadcast("headcount-update", { date: targetDate });
+
+    try {
+        logAction({ actorId: user.id, actorName: user.name, targetUserId: user.id, actionType: "MEAL_OPT_IN", details: { date: targetDate, mealType } });
+    } catch (e) {
+        console.error("Audit write failed:", e);
+    }
+
     res.json({ message: `Opted in to ${mealType}` });
 });
 
@@ -142,11 +178,16 @@ router.post(
             optIn(targetUserId, mealType, currentUser.id, date);
         }
 
-        const targetDate = date || new Date().toISOString().split("T")[0];
+        const targetDate = date || todayString();
         broadcast("headcount-update", { date: targetDate });
-        res.json({
-            message: `Overrode ${targetUser.name}'s ${mealType} to ${status}`,
-        });
+
+        try {
+            logAction({ actorId: currentUser.id, actorName: currentUser.name, targetUserId, actionType: "MEAL_OVERRIDE", details: { date: targetDate, mealType, status } });
+        } catch (e) {
+            console.error("Audit write failed:", e);
+        }
+
+        res.json({ message: `Overrode ${targetUser.name}'s ${mealType} to ${status}` });
     }
 );
 
@@ -177,7 +218,7 @@ router.post(
         if (!["IN", "OUT"].includes(status)) {
             return res.status(400).json({ error: "status must be IN or OUT" });
         }
-        
+
         if (startDate > endDate) {
             return res.status(400).json({ error: "startDate must be before or equal to endDate" });
         }
@@ -226,10 +267,17 @@ router.post(
             }
         }
 
-        // Broadcast for each unique date affected
         for (const date of dates) {
             broadcast("headcount-update", { date });
         }
+
+        // One audit entry for the whole batch
+        try {
+            logAction({ actorId: currentUser.id, actorName: currentUser.name, targetUserId: null, actionType: "BULK_OVERRIDE", details: { startDate, endDate, mealTypes, status, userIds } });
+        } catch (e) {
+            console.error("Audit write failed:", e);
+        }
+
         res.json({ message: `Applied ${count} overrides`, count });
     }
 );
