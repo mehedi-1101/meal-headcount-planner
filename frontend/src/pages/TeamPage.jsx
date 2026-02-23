@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef, forwardRef } from 'react'
 import useAuthStore from '../stores/authStore'
 import useUIStore from '../stores/uiStore'
+import useAuditStore from '../stores/auditStore'
 import * as teamApi from '../api/team'
 import * as mealsApi from '../api/meals'
 import * as workLocationApi from '../api/workLocation'
@@ -11,11 +12,32 @@ const MEAL_LABELS = {
   EVENT_DINNER: 'Event Dinner', OPTIONAL_DINNER: 'Optional Dinner',
 }
 
+function formatAuditTime(isoString) {
+  return new Date(isoString).toLocaleString('en-GB', {
+    day: 'numeric', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
+function formatActionType(actionType, details) {
+  switch (actionType) {
+    case 'MEAL_OPT_OUT':      return `Opted out of ${details.mealType}`
+    case 'MEAL_OPT_IN':       return `Opted in to ${details.mealType}`
+    case 'MEAL_OVERRIDE':     return `Override: ${details.mealType} → ${details.status}`
+    case 'LOCATION_CHANGE':   return `Set location to ${details.location}`
+    case 'LOCATION_OVERRIDE': return `Override location to ${details.location}`
+    case 'BULK_OVERRIDE':     return `Bulk override (${details.status})`
+    default: return actionType
+  }
+}
+
 export default function TeamPage() {
   const { user } = useAuthStore()
   const { getSelectedDate, setSelectedDate, addToast } = useUIStore()
   const selectedDate = getSelectedDate()
   const isAdmin = user?.role === 'ADMIN'
+  const isLogistics = user?.role === 'LOGISTICS'
+  const canViewAudit = !isLogistics
 
   const [teams, setTeams] = useState([])
   const [selectedTeamId, setSelectedTeamId] = useState(user?.teamId || '')
@@ -24,11 +46,36 @@ export default function TeamPage() {
   const [loading, setLoading] = useState(true)
   const [showBulk, setShowBulk] = useState(false)
 
-  // Fetch team list for admin dropdown once
+  // WFH usage per member
+  const [wfhUsageMap, setWfhUsageMap] = useState({})
+  const [showOverLimitOnly, setShowOverLimitOnly] = useState(false)
+
+  // Audit popover: { memberId, mealType }
+  const [openPopover, setOpenPopover] = useState(null)
+  const popoverRef = useRef(null)
+
+  const fetchEntries = useAuditStore((s) => s.fetchEntries)
+  const getEntries = useAuditStore((s) => s.getEntries)
+  const isLoadingAudit = useAuditStore((s) => s.isLoading)
+
   useEffect(() => {
     if (!isAdmin) return
     teamApi.getTeams().then(setTeams).catch(() => {})
   }, [isAdmin])
+
+  const loadWfhUsage = useCallback(() => {
+    workLocationApi.getMonthlyUsage()
+      .then((data) => {
+        const map = {}
+        data.users.forEach((u) => {
+          map[u.userId] = { wfhDays: u.wfhDays, allowance: data.allowance, overLimit: u.overLimit }
+        })
+        setWfhUsageMap(map)
+      })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => { loadWfhUsage() }, [loadWfhUsage])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -52,6 +99,23 @@ export default function TeamPage() {
 
   useEffect(() => { load() }, [load])
 
+  // Close popover on outside click / Escape
+  useEffect(() => {
+    if (!openPopover) return
+    function onKey(e) { if (e.key === 'Escape') setOpenPopover(null) }
+    function onMouse(e) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
+        setOpenPopover(null)
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    document.addEventListener('mousedown', onMouse)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('mousedown', onMouse)
+    }
+  }, [openPopover])
+
   async function handleMealToggle(member, mealType) {
     const mealDefault = availableMeals.find((m) => m.type === mealType)?.default ?? 'IN'
     const current = member.meals[mealType] ?? mealDefault
@@ -69,12 +133,27 @@ export default function TeamPage() {
     try {
       await workLocationApi.overrideLocation(member.id, selectedDate, newLoc)
       await load()
+      loadWfhUsage()
     } catch (err) {
       addToast(err.message, 'error')
     }
   }
 
+  function handleAuditClick(memberId, mealType, e) {
+    e.stopPropagation()
+    if (openPopover?.memberId === memberId && openPopover?.mealType === mealType) {
+      setOpenPopover(null)
+      return
+    }
+    setOpenPopover({ memberId, mealType })
+    fetchEntries(memberId, selectedDate)
+  }
+
   const mealTypes = availableMeals.map((m) => m.type)
+  const overLimitCount = Object.values(wfhUsageMap).filter((u) => u.overLimit).length
+  const displayedMembers = showOverLimitOnly
+    ? members.filter((m) => wfhUsageMap[m.id]?.overLimit)
+    : members
 
   if (loading) return <div className="page-loading">Loading…</div>
 
@@ -111,8 +190,27 @@ export default function TeamPage() {
         </div>
       </div>
 
-      {members.length === 0 ? (
-        <div className="empty-state">No members found for this date.</div>
+      {/* Over-limit filter */}
+      {Object.keys(wfhUsageMap).length > 0 && (
+        <div className={styles.filterBar}>
+          <button
+            className={`btn btn-sm ${showOverLimitOnly ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setShowOverLimitOnly((v) => !v)}
+          >
+            Over WFH limit
+            {overLimitCount > 0 && (
+              <span className={styles.filterCount}>{overLimitCount}</span>
+            )}
+          </button>
+        </div>
+      )}
+
+      {displayedMembers.length === 0 ? (
+        <div className="empty-state">
+          {showOverLimitOnly
+            ? 'No members have exceeded the WFH limit.'
+            : 'No members found for this date.'}
+        </div>
       ) : (
         <div className="card" style={{ padding: 0 }}>
           <div className="table-wrap">
@@ -127,14 +225,20 @@ export default function TeamPage() {
                 </tr>
               </thead>
               <tbody>
-                {members.map((member) => {
+                {displayedMembers.map((member) => {
                   const isWFH = member.location === 'WFH'
+                  const usage = wfhUsageMap[member.id]
                   return (
                     <tr key={member.id} className={isWFH ? styles.wfhRow : ''}>
                       <td>
                         <div className={styles.memberName}>{member.name}</div>
                         {isAdmin && (
                           <div className={styles.memberMeta}>{member.role}</div>
+                        )}
+                        {usage && (
+                          <div className={usage.overLimit ? styles.wfhBadgeOver : styles.wfhBadge}>
+                            WFH {usage.wfhDays}/{usage.allowance}
+                          </div>
                         )}
                       </td>
                       <td>
@@ -153,15 +257,36 @@ export default function TeamPage() {
                         const mealDefault = availableMeals.find((m) => m.type === type)?.default ?? 'IN'
                         const status = member.meals[type] ?? mealDefault
                         const isIn = status === 'IN'
+                        const isOpen = openPopover?.memberId === member.id && openPopover?.mealType === type
                         return (
-                          <td key={type}>
-                            <button
-                              className={`badge ${isIn ? 'badge-in' : 'badge-out'} ${styles.toggleBadge}`}
-                              onClick={() => handleMealToggle(member, type)}
-                              title="Click to toggle"
-                            >
-                              {isIn ? 'IN' : 'OUT'}
-                            </button>
+                          <td key={type} style={{ position: 'relative' }}>
+                            <div className={styles.mealCell}>
+                              <button
+                                className={`badge ${isIn ? 'badge-in' : 'badge-out'} ${styles.toggleBadge}`}
+                                onClick={() => handleMealToggle(member, type)}
+                                title="Click to toggle"
+                              >
+                                {isIn ? 'IN' : 'OUT'}
+                              </button>
+                              {canViewAudit && (
+                                <button
+                                  className={styles.historyBtn}
+                                  onClick={(e) => handleAuditClick(member.id, type, e)}
+                                  title="View change history"
+                                >
+                                  ⏱
+                                </button>
+                              )}
+                            </div>
+                            {isOpen && (
+                              <AuditPopover
+                                ref={popoverRef}
+                                memberId={member.id}
+                                date={selectedDate}
+                                getEntries={getEntries}
+                                isLoading={isLoadingAudit}
+                              />
+                            )}
                           </td>
                         )
                       })}
@@ -188,6 +313,32 @@ export default function TeamPage() {
   )
 }
 
+const AuditPopover = forwardRef(function AuditPopover({ memberId, date, getEntries, isLoading }, ref) {
+  const loading = isLoading(memberId, date)
+  const entries = getEntries(memberId, date)
+
+  return (
+    <div ref={ref} className={styles.popover}>
+      <p className={styles.popoverTitle}>Change history</p>
+      {loading && <p className={styles.popoverMuted}>Loading…</p>}
+      {!loading && (!entries || entries.length === 0) && (
+        <p className={styles.popoverMuted}>No changes recorded.</p>
+      )}
+      {!loading && entries && entries.length > 0 && (
+        <ul className={styles.auditList}>
+          {[...entries].reverse().map((e) => (
+            <li key={e.id} className={styles.auditEntry}>
+              <span className={styles.auditActor}>{e.actorName}</span>
+              <span className={styles.auditAction}>{formatActionType(e.actionType, e.details)}</span>
+              <span className={styles.auditTime}>{formatAuditTime(e.timestamp)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+})
+
 function BulkActionModal({ members, mealTypes, selectedDate, onClose, onApplied, addToast }) {
   const [selectedUserIds, setSelectedUserIds] = useState(members.map((m) => m.id))
   const [selectedMealTypes, setSelectedMealTypes] = useState(mealTypes)
@@ -213,11 +364,11 @@ function BulkActionModal({ members, mealTypes, selectedDate, onClose, onApplied,
       addToast('Select at least one member and one meal', 'error')
       return
     }
-    
+
     const actionText = action === 'OUT' ? 'opt out' : 'opt in'
     const msg = `${actionText.toUpperCase()} ${selectedUserIds.length} member(s) for ${selectedMealTypes.length} meal(s) from ${startDate} to ${endDate}?`
     if (!confirm(msg)) return
-    
+
     setSubmitting(true)
     try {
       await mealsApi.bulkOverride(selectedUserIds, selectedMealTypes, action, startDate, endDate)
