@@ -42,6 +42,19 @@
   color: var(--color-text-2);
 }
 
+.wfhUsage {
+  font-size: 12px;
+  color: var(--color-text-2);
+  margin-top: 2px;
+}
+
+.wfhUsageOver {
+  font-size: 12px;
+  color: var(--color-warning);
+  margin-top: 2px;
+  font-weight: 500;
+}
+
 /* ── Meal grid ── */
 .mealGrid {
   display: grid;

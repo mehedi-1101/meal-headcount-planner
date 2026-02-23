@@ -29,6 +29,12 @@ function isPastCutoff(selectedDate, cutoffTime) {
   return new Date() > cutoff
 }
 
+function addDays(dateStr, n) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const result = new Date(y, m - 1, d + n)
+  return result.toISOString().split('T')[0]
+}
+
 export default function DashboardPage() {
   const { user } = useAuthStore()
   const { getSelectedDate, setSelectedDate, addToast } = useUIStore()
@@ -37,9 +43,12 @@ export default function DashboardPage() {
   const [meals, setMeals] = useState([])
   const [location, setLocation] = useState('OFFICE')
   const [cutoffTime, setCutoffTime] = useState('22:00')
+  const [maxForwardDays, setMaxForwardDays] = useState(null)
   const [teamName, setTeamName] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [wfhUsage, setWfhUsage] = useState(null) // { wfhDays, allowance, overLimit }
 
+  const isEmployee = user?.role === 'EMPLOYEE'
   const canEdit = user?.role === 'ADMIN' || user?.role === 'TEAM_LEAD'
   const locked = !canEdit && isPastCutoff(selectedDate, cutoffTime)
   const isWFH = location === 'WFH'
@@ -55,12 +64,25 @@ export default function DashboardPage() {
       .catch(() => {})
   }, [user?.teamId])
 
-  // Fetch settings once to get cutoff time for display
+  // Fetch settings once — cutoff time + forward planning days
   useEffect(() => {
     settingsApi.getSettings()
-      .then((s) => setCutoffTime(s.cutoffTime))
+      .then((s) => {
+        setCutoffTime(s.cutoffTime)
+        if (s.maxForwardPlanningDays) setMaxForwardDays(s.maxForwardPlanningDays)
+      })
       .catch(() => {})
   }, [])
+
+  // Fetch WFH usage for current month (shown below location card)
+  useEffect(() => {
+    workLocationApi.getMonthlyUsage()
+      .then((data) => {
+        const me = data.users.find((u) => u.userId === user?.id)
+        if (me) setWfhUsage({ wfhDays: me.wfhDays, allowance: data.allowance, overLimit: me.overLimit })
+      })
+      .catch(() => {})
+  }, [user?.id])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -85,6 +107,13 @@ export default function DashboardPage() {
     try {
       await workLocationApi.setLocation(selectedDate, newLoc)
       setLocation(newLoc)
+      // Refresh WFH usage after a location change
+      workLocationApi.getMonthlyUsage()
+        .then((data) => {
+          const me = data.users.find((u) => u.userId === user?.id)
+          if (me) setWfhUsage({ wfhDays: me.wfhDays, allowance: data.allowance, overLimit: me.overLimit })
+        })
+        .catch(() => {})
     } catch (err) {
       addToast(err.message, 'error')
     }
@@ -105,6 +134,9 @@ export default function DashboardPage() {
     }
   }
 
+  const today = getSelectedDate()
+  const maxDate = isEmployee && maxForwardDays ? addDays(today, maxForwardDays) : undefined
+
   if (loading) return <div className="page-loading">Loading…</div>
 
   return (
@@ -120,6 +152,7 @@ export default function DashboardPage() {
           className="form-input"
           style={{ width: 'auto' }}
           value={selectedDate}
+          max={maxDate}
           onChange={(e) => setSelectedDate(e.target.value)}
         />
       </div>
@@ -152,6 +185,12 @@ export default function DashboardPage() {
                     ? 'You are not counted for any meals today'
                     : 'You are counted for applicable meals by default'}
                 </p>
+                {wfhUsage && (
+                  <p className={wfhUsage.overLimit ? styles.wfhUsageOver : styles.wfhUsage}>
+                    WFH this month: {wfhUsage.wfhDays} / {wfhUsage.allowance}
+                    {wfhUsage.overLimit && ' — monthly allowance exceeded'}
+                  </p>
+                )}
               </div>
               <button
                 className="btn btn-secondary btn-sm"
