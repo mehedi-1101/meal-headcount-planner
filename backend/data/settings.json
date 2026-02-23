@@ -11,5 +11,7 @@
       "endDate": "2026-03-19"
     }
   ],
-  "companyWfhPeriods": []
+  "companyWfhPeriods": [],
+  "maxForwardPlanningDays": 14,
+  "monthlyWfhAllowance": 5
 }

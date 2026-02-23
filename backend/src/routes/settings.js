@@ -10,7 +10,7 @@ router.get("/", requireAuth, (req, res) => {
 });
 
 router.put("/", requireAuth, requireRole([ROLES.ADMIN]), (req, res) => {
-    const { cutoffTime, offDays, iftarPeriods, companyWfhPeriods } = req.body;
+    const { cutoffTime, offDays, iftarPeriods, companyWfhPeriods, maxForwardPlanningDays, monthlyWfhAllowance } = req.body;
     
     // Validate cutoffTime format (HH:mm)
     if (cutoffTime && !/^([01]\d|2[0-3]):([0-5]\d)$/.test(cutoffTime)) {
@@ -41,7 +41,21 @@ router.put("/", requireAuth, requireRole([ROLES.ADMIN]), (req, res) => {
         const err = validatePeriods(companyWfhPeriods, "companyWfhPeriods");
         if (err) return res.status(400).json({ error: err });
     }
-    
+
+    if (maxForwardPlanningDays !== undefined) {
+        const n = Number(maxForwardPlanningDays);
+        if (!Number.isInteger(n) || n < 1 || n > 60) {
+            return res.status(400).json({ error: "maxForwardPlanningDays must be an integer between 1 and 60" });
+        }
+    }
+
+    if (monthlyWfhAllowance !== undefined) {
+        const n = Number(monthlyWfhAllowance);
+        if (!Number.isInteger(n) || n < 0 || n > 31) {
+            return res.status(400).json({ error: "monthlyWfhAllowance must be an integer between 0 and 31" });
+        }
+    }
+
     const updated = updateSettings(req.body);
     res.json(updated);
 });

@@ -7,6 +7,8 @@ const DEFAULTS = {
     offDays: [6, 0],
     iftarPeriods: [],
     companyWfhPeriods: [],
+    maxForwardPlanningDays: 14,
+    monthlyWfhAllowance: 5,
 };
 
 export function getSettings() {
