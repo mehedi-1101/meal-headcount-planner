@@ -19,7 +19,8 @@ router.get("/wfh-overage", requireAuth, (req, res) => {
         return res.status(403).json({ error: "Access denied" });
     }
 
-    const month = req.query.month || new Date().toISOString().slice(0, 7);
+    const now = new Date();
+    const month = req.query.month || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const { monthlyWfhAllowance } = getSettings();
 
     let userList;
