@@ -14,6 +14,10 @@ Internal web application for collecting and reporting daily meal headcounts. Def
 * Work location tracking (Office/WFH)
 * Cutoff time enforcement for meal changes
 * Iftar and company WFH period support
+* Forward planning — employees can plan meals and location up to a configurable number of days ahead
+* Monthly WFH allowance tracking with soft-limit warnings and overage report
+* Audit trail — every meal and location change is recorded with actor and timestamp
+* 14-day headcount forecast and operational dashboard for Admin/Logistics
 
 ---
 
@@ -64,7 +68,7 @@ npm run dev                   # starts on http://localhost:5173
 
 Open http://localhost:5173. The Vite dev server proxies `/api` to the backend.
 
-**Seed credentials** — all seed users share password `pass123`:
+**Seed credentials** — all seed users share password `password`:
 
 | Username | Role |
 |---|---|
@@ -113,6 +117,7 @@ Files **not** committed (gitignored — run `npm run seed` on fresh clone):
 - `meals.json` — participation records
 - `workLocations.json` — location overrides
 - `specialDays.json` — holidays, closures, celebrations
+- `auditLogs-YYYY-MM.json` — monthly-partitioned audit log (created automatically on first mutation)
 
 ---
 
