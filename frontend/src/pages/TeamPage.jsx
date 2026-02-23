@@ -44,6 +44,7 @@ export default function TeamPage() {
   const [members, setMembers] = useState([])
   const [availableMeals, setAvailableMeals] = useState([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [showBulk, setShowBulk] = useState(false)
 
   // WFH usage per member
@@ -57,6 +58,7 @@ export default function TeamPage() {
   const fetchEntries = useAuditStore((s) => s.fetchEntries)
   const getEntries = useAuditStore((s) => s.getEntries)
   const isLoadingAudit = useAuditStore((s) => s.isLoading)
+  const invalidateAudit = useAuditStore((s) => s.invalidate)
 
   useEffect(() => {
     if (!isAdmin) return
@@ -78,8 +80,9 @@ export default function TeamPage() {
 
   useEffect(() => { loadWfhUsage() }, [loadWfhUsage])
 
-  const load = useCallback(async () => {
-    setLoading(true)
+  const load = useCallback(async (isInitial = false) => {
+    if (isInitial) setLoading(true)
+    else setRefreshing(true)
     try {
       const [participation, mealData] = await Promise.all([
         teamApi.getParticipation(selectedDate),
@@ -95,10 +98,11 @@ export default function TeamPage() {
       addToast(err.message, 'error')
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
   }, [selectedDate, selectedTeamId, isAdmin, addToast])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { load(members.length === 0) }, [load]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close popover on outside click / Escape
   useEffect(() => {
@@ -121,22 +125,32 @@ export default function TeamPage() {
     const mealDefault = availableMeals.find((m) => m.type === mealType)?.default ?? 'IN'
     const current = member.meals[mealType] ?? mealDefault
     const newStatus = current === 'IN' ? 'OUT' : 'IN'
+    // Optimistic update
+    setMembers((prev) => prev.map((m) =>
+      m.id === member.id ? { ...m, meals: { ...m.meals, [mealType]: newStatus } } : m
+    ))
     try {
       await mealsApi.override(member.id, mealType, newStatus, selectedDate)
-      await load()
+      invalidateAudit(member.id, selectedDate)
     } catch (err) {
       addToast(err.message, 'error')
+      load(false) // revert on failure
     }
   }
 
   async function handleLocationToggle(member) {
     const newLoc = member.location === 'WFH' ? 'OFFICE' : 'WFH'
+    // Optimistic update
+    setMembers((prev) => prev.map((m) =>
+      m.id === member.id ? { ...m, location: newLoc } : m
+    ))
     try {
       await workLocationApi.overrideLocation(member.id, selectedDate, newLoc)
-      await load()
+      invalidateAudit(member.id, selectedDate)
       loadWfhUsage()
     } catch (err) {
       addToast(err.message, 'error')
+      load(false) // revert on failure
     }
   }
 
@@ -213,7 +227,7 @@ export default function TeamPage() {
             : 'No members found for this date.'}
         </div>
       ) : (
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card" style={{ padding: 0, opacity: refreshing ? 0.6 : 1, transition: 'opacity 0.15s ease', pointerEvents: refreshing ? 'none' : 'auto' }}>
           <div className="table-wrap">
             <table>
               <thead>
@@ -242,14 +256,35 @@ export default function TeamPage() {
                           </div>
                         )}
                       </td>
-                      <td>
-                        <button
-                          className={`badge ${isWFH ? 'badge-wfh' : 'badge-office'} ${styles.toggleBadge}`}
-                          onClick={() => handleLocationToggle(member)}
-                          title="Click to toggle location"
-                        >
-                          {isWFH ? 'WFH' : 'Office'}
-                        </button>
+                      <td style={{ position: 'relative' }}>
+                        <div className={styles.mealCell}>
+                          <button
+                            className={`badge ${isWFH ? 'badge-wfh' : 'badge-office'} ${styles.toggleBadge}`}
+                            onClick={() => handleLocationToggle(member)}
+                            title="Click to toggle location"
+                          >
+                            {isWFH ? 'WFH' : 'Office'}
+                          </button>
+                          {canViewAudit && (
+                            <button
+                              className={styles.historyBtn}
+                              onClick={(e) => handleAuditClick(member.id, null, e)}
+                              onMouseEnter={() => fetchEntries(member.id, selectedDate)}
+                              title="View change history"
+                            >
+                              ⏱
+                            </button>
+                          )}
+                        </div>
+                        {openPopover?.memberId === member.id && openPopover?.mealType === null && (
+                          <AuditPopover
+                            ref={popoverRef}
+                            memberId={member.id}
+                            date={selectedDate}
+                            getEntries={getEntries}
+                            isLoading={isLoadingAudit}
+                          />
+                        )}
                       </td>
                       {mealTypes.map((type) => {
                         if (isWFH) {
@@ -273,6 +308,7 @@ export default function TeamPage() {
                                 <button
                                   className={styles.historyBtn}
                                   onClick={(e) => handleAuditClick(member.id, type, e)}
+                                  onMouseEnter={() => fetchEntries(member.id, selectedDate)}
                                   title="View change history"
                                 >
                                   ⏱
@@ -306,7 +342,7 @@ export default function TeamPage() {
           mealTypes={mealTypes}
           selectedDate={selectedDate}
           onClose={() => setShowBulk(false)}
-          onApplied={() => { setShowBulk(false); load() }}
+          onApplied={() => { setShowBulk(false); load(false) }}
           addToast={addToast}
         />
       )}

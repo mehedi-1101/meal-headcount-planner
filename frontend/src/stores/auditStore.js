@@ -29,6 +29,17 @@ const useAuditStore = create((set, get) => ({
 
   isLoading: (userId, date) => get().loading[`${userId}_${date}`] ?? false,
 
+  invalidate: (userId, date) => {
+    const key = `${userId}_${date}`
+    set((s) => {
+      const cache = { ...s.cache }
+      const loading = { ...s.loading }
+      delete cache[key]
+      delete loading[key]
+      return { cache, loading }
+    })
+  },
+
   clearCache: () => set({ cache: {}, loading: {} }),
 }))
 
