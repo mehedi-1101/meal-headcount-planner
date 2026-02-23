@@ -12,15 +12,18 @@ import { getSettings } from "../services/settingsService.js";
 
 const router = express.Router();
 
+function todayString() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+}
+
 const mealDateExtractor = (req) => {
     const date = req.body.date;
-    // Handle null, undefined, empty string - all default to today
-    return (date && date.trim()) ? date : new Date().toISOString().split("T")[0];
+    return (date && date.trim()) ? date : todayString();
 };
-
-function todayString() {
-    return new Date().toISOString().split("T")[0];
-}
 
 function isDateBeyondForwardWindow(dateStr, maxDays) {
     const today = new Date();
@@ -252,8 +255,7 @@ router.post(
         while (current <= endDate) {
             dates.push(current);
             const [y, m, d] = current.split("-").map(Number);
-            const next = new Date(y, m - 1, d + 1);
-            current = next.toISOString().split("T")[0];
+            current = new Date(Date.UTC(y, m - 1, d + 1)).toISOString().split("T")[0];
         }
 
         const action = status === "OUT" ? optOut : optIn;

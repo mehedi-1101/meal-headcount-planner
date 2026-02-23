@@ -7,7 +7,10 @@ function auditFileName(month) {
 }
 
 function currentMonth() {
-    return new Date().toISOString().slice(0, 7);
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    return `${y}-${m}`;
 }
 
 /**
@@ -23,7 +26,10 @@ function currentMonth() {
  */
 export function logAction({ actorId, actorName, targetUserId, actionType, details }) {
     const timestamp = new Date().toISOString();
-    const month = timestamp.slice(0, 7);
+    // Derive file month from the event's date (local YYYY-MM-DD), not UTC timestamp,
+    // so getAuditEntries always reads from the same file it was written to.
+    const eventDate = details?.date || details?.startDate;
+    const month = eventDate ? eventDate.slice(0, 7) : currentMonth();
     const id = `log-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`;
 
     const fileName = auditFileName(month);
