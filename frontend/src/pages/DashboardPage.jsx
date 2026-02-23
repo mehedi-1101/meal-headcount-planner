@@ -46,6 +46,7 @@ export default function DashboardPage() {
   const [maxForwardDays, setMaxForwardDays] = useState(null)
   const [teamName, setTeamName] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [wfhUsage, setWfhUsage] = useState(null) // { wfhDays, allowance, overLimit }
 
   const isEmployee = user?.role === 'EMPLOYEE'
@@ -85,8 +86,9 @@ export default function DashboardPage() {
       .catch(() => {})
   }, [user?.id, selectedMonth])
 
-  const load = useCallback(async () => {
-    setLoading(true)
+  const load = useCallback(async (isInitial = false) => {
+    if (isInitial) setLoading(true)
+    else setRefreshing(true)
     try {
       const [mealsData, locData] = await Promise.all([
         mealsApi.getMeals(selectedDate),
@@ -98,10 +100,11 @@ export default function DashboardPage() {
       addToast(err.message, 'error')
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
   }, [selectedDate, addToast])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { load(meals.length === 0) }, [load]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleLocationToggle() {
     const newLoc = isWFH ? 'OFFICE' : 'WFH'
@@ -141,7 +144,7 @@ export default function DashboardPage() {
   if (loading) return <div className="page-loading">Loading…</div>
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} style={refreshing ? { opacity: 0.6, pointerEvents: 'none', transition: 'opacity 0.15s ease' } : undefined}>
       {/* Date row */}
       <div className={styles.dateRow}>
         <div>
