@@ -8,3 +8,8 @@ export const setLocation = (date, location) =>
 
 export const overrideLocation = (targetUserId, date, location) =>
   post('/work-location/override', { targetUserId, date, location })
+
+export const getMonthlyUsage = (month) => {
+  const monthParam = month ? `?month=${month}` : ''
+  return get(`/work-location/monthly-usage${monthParam}`)
+}
