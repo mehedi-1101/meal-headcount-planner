@@ -3,6 +3,12 @@ node_modules/
 .env
 .DS_Store
 dev.md
+CLAUDE.md
+.claude/
+mhp-python/NOTES.md
+mhp-python/__pycache__/
+mhp-python/**/__pycache__/
+mhp-python/**/*.pyc
 # User data files (contain personal data / password hashes — do not commit)
 backend/data/users.json
 backend/data/meals.json
