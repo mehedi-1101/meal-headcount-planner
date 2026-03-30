@@ -1,0 +1,11 @@
+fastapi==0.135.2
+uvicorn==0.42.0
+pydantic==2.12.5
+boto3==1.42.79
+python-dotenv==1.1.0
+
+# JWT signing/verification — joserfc replaces python-jose (abandoned, CVEs, no Python 3.14 support)
+joserfc==1.6.3
+
+# Password hashing — pwdlib replaces passlib (passlib abandoned in 2020, breaks on Python 3.13+ with bcrypt 4.1.1+)
+pwdlib[bcrypt]==0.3.0
