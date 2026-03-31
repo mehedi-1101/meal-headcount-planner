@@ -6,6 +6,8 @@ dev.md
 CLAUDE.md
 .claude/
 mhp-python/NOTES.md
+mhp-python/JOURNEY.md
+mhp-python/AWS.md
 mhp-python/__pycache__/
 mhp-python/**/__pycache__/
 mhp-python/**/*.pyc
@@ -15,3 +17,8 @@ backend/data/meals.json
 backend/data/workLocations.json
 backend/data/specialDays.json
 # Config files (teams.json, settings.json) are tracked — run seed.js on fresh clone
+
+# Terraform
+terraform/.terraform/
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
