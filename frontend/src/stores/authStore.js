@@ -16,13 +16,14 @@ const useAuthStore = create((set) => ({
   },
 
   login: async (username, password) => {
-    await authApi.login(username, password)
-    const user = await authApi.getMe()
+    const { user, token } = await authApi.login(username, password)
+    localStorage.setItem('token', token)
     set({ user, loading: false })
   },
 
   logout: async () => {
     await authApi.logout()
+    localStorage.removeItem('token')
     // Reset any UI selections (like date) for the next user
     useUIStore.getState().setSelectedDate(null)
     set({ user: null })

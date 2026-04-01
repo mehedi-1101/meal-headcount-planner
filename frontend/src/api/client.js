@@ -1,18 +1,22 @@
-const BASE = '/api'
+const BASE = (import.meta.env.VITE_API_URL ?? '') + '/api'
 
 async function request(path, options = {}) {
   const { method = 'GET', body } = options
 
+  const token = localStorage.getItem('token')
+  const headers = {}
+  if (body) headers['Content-Type'] = 'application/json'
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
   const res = await fetch(`${BASE}${path}`, {
     method,
-    credentials: 'include',
-    headers: body ? { 'Content-Type': 'application/json' } : {},
+    headers,
     body: body ? JSON.stringify(body) : undefined,
   })
 
   if (!res.ok) {
     const data = await res.json().catch(() => ({}))
-    const err = new Error(data.error || `Request failed: ${res.status}`)
+    const err = new Error(data.error || data.detail || `Request failed: ${res.status}`)
     err.status = res.status
     
     // Global 401 handler - redirect to login and clear auth state
