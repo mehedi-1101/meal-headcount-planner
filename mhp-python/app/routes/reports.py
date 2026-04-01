@@ -29,6 +29,9 @@ def wfh_overage(month: str, user: dict = Depends(get_current_user)):
     return {
         "month": month,
         "allowance": allowance,
-        "overageCount": len(over),
-        "users": over,
+        "summary": {
+            "overLimitCount": len(over),
+            "totalExtraDays": sum(u.get("extraDays", 0) for u in over),
+        },
+        "employees": over,
     }

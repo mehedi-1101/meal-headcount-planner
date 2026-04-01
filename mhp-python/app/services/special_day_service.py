@@ -3,6 +3,7 @@ Special day service.
 PK=DATE#<date>, SK=SPECIAL
 """
 
+from datetime import datetime, timezone
 from app.database import get_item, put_item, delete_item, query_by_pk, date_pk
 
 
@@ -34,6 +35,9 @@ def get_special_days_for_month(month: str) -> list[dict]:
 
 
 def create_special_day(data: dict) -> dict:
+    data.setdefault("note", "")
+    data.setdefault("meals", [])
+    data["createdAt"] = datetime.now(timezone.utc).isoformat()
     item = {
         "PK": date_pk(data["date"]),
         "SK": "SPECIAL",
@@ -49,6 +53,7 @@ def update_special_day(date: str, updates: dict) -> dict:
         return None
     existing.update(updates)
     existing["date"] = date
+    existing["updatedAt"] = datetime.now(timezone.utc).isoformat()
     item = {"PK": date_pk(date), "SK": "SPECIAL", **existing}
     put_item(item)
     existing.pop("PK", None)

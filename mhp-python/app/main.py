@@ -55,3 +55,10 @@ app.include_router(announcement.router,  prefix="/api/announcement")
 def health():
     """Simple health check — useful for load balancers and smoke tests."""
     return {"status": "ok"}
+
+
+@app.get("/api/events/stream")
+def events_stream():
+    """SSE not implemented in Python backend — returns empty stream so browser stops retrying."""
+    from fastapi.responses import Response
+    return Response(content="", media_type="text/event-stream", status_code=200)

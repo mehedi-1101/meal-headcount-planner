@@ -1,4 +1,5 @@
 from datetime import date as DateType
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.auth import get_current_user, require_roles
@@ -23,14 +24,16 @@ def _check_past(target_date: str):
         raise HTTPException(status_code=400, detail="Cannot modify records for past dates.")
 
 
-@router.get("/")
-def get_location(userId: str, date: str, user: dict = Depends(get_current_user)):
-    location = get_effective_location(userId, date)
-    record = get_location_record(userId, date)
-    return {"userId": userId, "date": date, "location": location, "record": record}
+@router.get("")
+def get_location(date: str, user: dict = Depends(get_current_user), userId: Optional[str] = None):
+    # If no userId provided, default to the calling user's own id
+    target_id = userId or user["id"]
+    location = get_effective_location(target_id, date)
+    record = get_location_record(target_id, date)
+    return {"userId": target_id, "date": date, "location": location, "record": record}
 
 
-@router.post("/")
+@router.post("")
 def set_own_location(body: SetLocationRequest, user: dict = Depends(get_current_user)):
     if body.location not in (Locations.OFFICE, Locations.WFH):
         raise HTTPException(status_code=400, detail="location must be OFFICE or WFH")

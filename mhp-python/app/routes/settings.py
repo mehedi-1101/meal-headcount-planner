@@ -8,12 +8,12 @@ from app.services.settings_service import get_settings, update_settings
 router = APIRouter()
 
 
-@router.get("/")
+@router.get("")
 def read_settings(user: dict = Depends(get_current_user)):
     return get_settings()
 
 
-@router.put("/")
+@router.put("")
 def write_settings(
     body: SettingsRequest,
     user: dict = Depends(require_roles([Roles.ADMIN])),

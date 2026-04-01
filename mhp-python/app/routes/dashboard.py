@@ -28,5 +28,5 @@ def operational(user: dict = Depends(require_roles(_ALLOWED))):
     return {
         "today": get_headcount_report(today.isoformat()),
         "tomorrow": get_headcount_report(tomorrow.isoformat()),
-        "upcomingSpecialDays": upcoming_special,
+        "activeSpecialDays": upcoming_special,
     }

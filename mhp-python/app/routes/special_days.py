@@ -12,14 +12,14 @@ router = APIRouter()
 _ALLOWED = [Roles.ADMIN, Roles.LOGISTICS]
 
 
-@router.get("/")
+@router.get("")
 def list_special_days(month: str = None, user: dict = Depends(require_roles(_ALLOWED))):
     from datetime import date as DateType
     m = month or DateType.today().strftime("%Y-%m")
     return get_special_days_for_month(m)
 
 
-@router.post("/")
+@router.post("")
 def create(body: SpecialDayRequest, user: dict = Depends(require_roles(_ALLOWED))):
     if body.type not in (SpecialDayTypes.OFFICE_CLOSED, SpecialDayTypes.GOVT_HOLIDAY, SpecialDayTypes.CELEBRATION):
         raise HTTPException(status_code=400, detail="Invalid special day type")

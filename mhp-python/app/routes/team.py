@@ -10,7 +10,7 @@ from app.services.work_location_service import get_effective_location
 router = APIRouter()
 
 
-@router.get("/")
+@router.get("")
 def list_teams(user: dict = Depends(get_current_user)):
     return get_all_teams()
 
@@ -40,12 +40,13 @@ def team_participation(date: str, user: dict = Depends(get_current_user)):
         meal_status = get_user_meal_status(u["id"], available, date)
         location = get_effective_location(u["id"], date)
         entry = {
-            "userId": u["id"],
+            "id": u["id"],
             "name": u["name"] if user["role"] != Roles.LOGISTICS else "—",
+            "role": u.get("role"),
             "teamId": u.get("teamId"),
             "location": location,
             "meals": meal_status,
         }
         result.append(entry)
 
-    return {"date": date, "users": result}
+    return result

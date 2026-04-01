@@ -26,6 +26,14 @@ def login(body: LoginRequest):
     }
 
 
+@router.post("/logout")
+def logout():
+    # JWT is stateless — the server holds no session to destroy.
+    # Real logout happens client-side by deleting the token from localStorage.
+    # This endpoint exists so the frontend's logout() call doesn't get a 404.
+    return {"message": "Logged out"}
+
+
 @router.get("/me", response_model=UserResponse)
 def me(user: dict = Depends(get_current_user)):
     # Token already contains all user fields — no DB lookup needed

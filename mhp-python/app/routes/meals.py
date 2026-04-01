@@ -53,7 +53,7 @@ def _check_past(target_date: str):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot modify records for past dates.")
 
 
-@router.get("/")
+@router.get("")
 def get_meals(date: str, user: dict = Depends(get_current_user)):
     available = get_available_meals(date)
     user_status = get_user_meal_status(user["id"], available, date)

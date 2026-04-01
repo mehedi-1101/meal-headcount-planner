@@ -10,17 +10,17 @@ router = APIRouter()
 _ALLOWED = [Roles.ADMIN, Roles.LOGISTICS]
 
 
-@router.get("/")
+@router.get("")
 def headcount(date: str, user: dict = Depends(require_roles(_ALLOWED))):
     return get_headcount_report(date)
 
 
 @router.get("/forecast")
 def forecast(startDate: str, endDate: str, user: dict = Depends(require_roles(_ALLOWED))):
-    results = []
+    days = []
     current = DateType.fromisoformat(startDate)
     end = DateType.fromisoformat(endDate)
     while current <= end:
-        results.append(get_headcount_report(current.isoformat()))
+        days.append(get_headcount_report(current.isoformat()))
         current += timedelta(days=1)
-    return results
+    return {"startDate": startDate, "endDate": endDate, "days": days}
