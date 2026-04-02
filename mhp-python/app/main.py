@@ -28,7 +28,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",   # Vite dev server
         "http://localhost:3000",
-        # Add CloudFront URL here when deploying frontend: "https://xxxx.cloudfront.net"
+        "https://d1wfoeyho2ikjg.cloudfront.net",
     ],
     allow_credentials=True,
     allow_methods=["*"],
