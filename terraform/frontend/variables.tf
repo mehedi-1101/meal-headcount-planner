@@ -15,5 +15,5 @@ variable "bucket_name" {
 
 variable "ec2_domain" {
   description = "EC2 origin domain for the API CloudFront distribution. CloudFront does not accept raw IPs — use nip.io format: <ip>.nip.io"
-  default     = "13.203.157.238.nip.io"
+  default     = "65.0.5.138.nip.io"
 }
