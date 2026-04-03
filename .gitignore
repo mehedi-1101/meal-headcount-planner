@@ -18,8 +18,8 @@ backend/data/workLocations.json
 backend/data/specialDays.json
 # Config files (teams.json, settings.json) are tracked — run seed.js on fresh clone
 
-# Terraform
-terraform/.terraform/
-terraform/terraform.tfstate
-terraform/terraform.tfstate.backup
-terraform/.terraform.tfstate.lock.info
+# Terraform — applies to all stacks under terraform/
+terraform/**/.terraform/
+terraform/**/terraform.tfstate
+terraform/**/terraform.tfstate.backup
+terraform/**/.terraform.tfstate.lock.info
