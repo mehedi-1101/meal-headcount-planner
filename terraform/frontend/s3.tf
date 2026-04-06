@@ -4,6 +4,11 @@
 resource "aws_s3_bucket" "frontend" {
   bucket = var.bucket_name
 
+  # force_destroy = true allows Terraform to delete the bucket even when it
+  # contains files. Without this, terraform destroy fails with BucketNotEmpty
+  # if you've uploaded the frontend build. Safe for non-production buckets.
+  force_destroy = true
+
   tags = {
     Name = "${var.app_name}-frontend"
   }
