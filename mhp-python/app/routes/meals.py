@@ -1,4 +1,4 @@
-from datetime import date as DateType, datetime, timezone
+from datetime import date as DateType, datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Depends, status
 
 from app.auth import get_current_user, require_roles
@@ -17,18 +17,20 @@ def today() -> str:
     return DateType.today().isoformat()
 
 
+DHAKA_TZ = timezone(timedelta(hours=6))
+
+
 def _check_cutoff(target_date: str, user_role: str):
     """
-    Block EMPLOYEE and LOGISTICS after 21:00 the day before target date.
+    Block EMPLOYEE and LOGISTICS after 21:00 Dhaka time the day before target date.
     TL and ADMIN bypass this entirely.
-    Cutoff is hardcoded to 21:00 in the Python version (not read from
-    settings) to avoid an extra DB read on every mutation.
+    Cutoff is hardcoded to 21:00 Asia/Dhaka (UTC+6) to avoid an extra DB read on every mutation.
     """
     if user_role in (Roles.TEAM_LEAD, Roles.ADMIN):
         return
-    y, m, d = map(int, target_date.split("-"))
-    cutoff = datetime(y, m, d - 1, 21, 0, 0, tzinfo=timezone.utc)
-    if datetime.now(timezone.utc) > cutoff:
+    target = DateType.fromisoformat(target_date)
+    cutoff = datetime(target.year, target.month, target.day, 21, 0, 0, tzinfo=DHAKA_TZ) - timedelta(days=1)
+    if datetime.now(DHAKA_TZ) > cutoff:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Changes for {target_date} are locked (cutoff was 21:00 the day before).",
