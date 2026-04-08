@@ -28,11 +28,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",   # Vite dev server
         "http://localhost:3000",
-        "https://d1wfoeyho2ikjg.cloudfront.net",  # frontend CloudFront (manual)
-        "https://d1gq18wv4zkoq4.cloudfront.net",  # API CloudFront (manual)
-        "https://do6ta1v04xcle.cloudfront.net",   # frontend CloudFront (Terraform)
-        "https://d3dqlzyxrxntvw.cloudfront.net",  # API CloudFront (Terraform)
     ],
+    allow_origin_regex=r"https://.*\.cloudfront\.net",  # any CloudFront domain — no update needed after terraform apply
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
